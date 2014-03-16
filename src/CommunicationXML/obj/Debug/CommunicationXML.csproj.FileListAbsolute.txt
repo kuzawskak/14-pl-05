@@ -3,3 +3,8 @@ C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationXML\bin\Debug\CommunicationXML.
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationXML\obj\Debug\CommunicationXML.csprojResolveAssemblyReference.cache
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationXML\obj\Debug\CommunicationXML.dll
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationXML\obj\Debug\CommunicationXML.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationXML\bin\Debug\CommunicationXML.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationXML\bin\Debug\CommunicationXML.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationXML\obj\Debug\CommunicationXML.csprojResolveAssemblyReference.cache
+D:\ss\code\c_sharp\console\io\src\CommunicationXML\obj\Debug\CommunicationXML.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationXML\obj\Debug\CommunicationXML.pdb

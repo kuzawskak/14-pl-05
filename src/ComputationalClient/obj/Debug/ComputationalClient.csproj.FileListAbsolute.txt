@@ -10,3 +10,15 @@ C:\jablonskim\Dropbox\S6\IO\GIT\src\ComputationalClient\bin\Debug\CommunicationN
 C:\jablonskim\Dropbox\S6\IO\GIT\src\ComputationalClient\obj\Debug\ComputationalClient.csprojResolveAssemblyReference.cache
 C:\jablonskim\Dropbox\S6\IO\GIT\src\ComputationalClient\obj\Debug\ComputationalClient.exe
 C:\jablonskim\Dropbox\S6\IO\GIT\src\ComputationalClient\obj\Debug\ComputationalClient.pdb
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\ComputationalClient.exe.config
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\ComputationalClient.exe
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\ComputationalClient.pdb
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\Components.dll
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\CommunicationXML.dll
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\CommunicationNetwork.dll
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\Components.pdb
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\CommunicationXML.pdb
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\bin\Debug\CommunicationNetwork.pdb
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\obj\Debug\ComputationalClient.csprojResolveAssemblyReference.cache
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\obj\Debug\ComputationalClient.exe
+D:\ss\code\c_sharp\console\io\src\ComputationalClient\obj\Debug\ComputationalClient.pdb

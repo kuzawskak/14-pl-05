@@ -20,6 +20,9 @@ namespace CommunicationNetwork
 
         public delegate void ConnectionHandler(byte[] data, ConnectionContext ctx);
 
+        /// <summary>
+        /// Startowanie listenera
+        /// </summary>
         public void Start()
         {
             try
@@ -72,14 +75,21 @@ namespace CommunicationNetwork
                     t.Join();
             }
         }
-
+        /// <summary>
+        /// Konstruktor
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="handler"></param>
         public Listener(int port, ConnectionHandler handler)
         {
             this.port = port;
             ch = handler;
             threads = new List<Thread>();
         }
-
+        /// <summary>
+        /// Wątek zarządzający komunikacją
+        /// </summary>
+        /// <param name="cli"></param>
         void ThreadWork(object cli)
         {
             Console.WriteLine("Thread has been started");
@@ -118,20 +128,29 @@ namespace CommunicationNetwork
 
             // !!! CALL SERVER CONTEXT !!!
             ConnectionContext cc = new ConnectionContext(Thread.CurrentThread);
-            ch(data, cc);
-
-            // ***********************
-            // waiting for event
-            // ***********************
-            Thread.Sleep(Timeout.Infinite);
+            if (ch != null)
+            {
+                ch(data, cc);
+                // ***********************
+                // waiting for event
+                // ***********************
+                Thread.Sleep(Timeout.Infinite);
+            }
 
             // interrupting by send method
             // message to send
+            // test purposes
             data = cc.GetMessage();
+            if (data == null)
+                data = System.Text.Encoding.ASCII.GetBytes("invalid input");
             ns.Write(data, 0, data.Length);
             _cli.Close();
         }
 
+        /// <summary>
+        /// Lokalny adres IP
+        /// </summary>
+        /// <returns></returns>
         string LocalIPAddress()
         {
             IPHostEntry host;

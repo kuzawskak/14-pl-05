@@ -10,3 +10,15 @@ C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationServer\bin\Debug\CommunicationN
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationServer\obj\Debug\CommunicationServer.csprojResolveAssemblyReference.cache
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationServer\obj\Debug\CommunicationServer.exe
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationServer\obj\Debug\CommunicationServer.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationServer.exe.config
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\obj\Debug\CommunicationServer.exe
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\obj\Debug\CommunicationServer.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationServer.exe
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationServer.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\Components.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationXML.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationNetwork.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\Components.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationXML.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\bin\Debug\CommunicationNetwork.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationServer\obj\Debug\CommunicationServer.csprojResolveAssemblyReference.cache

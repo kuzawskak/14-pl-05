@@ -5,3 +5,10 @@ C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\bin\Debug\Communication
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.csprojResolveAssemblyReference.cache
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.dll
 C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\bin\Debug\CommunicationXML.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\bin\Debug\CommunicationXML.pdb
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.csprojResolveAssemblyReference.cache
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.dll
+D:\ss\code\c_sharp\console\io\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.pdb
