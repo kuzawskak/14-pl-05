@@ -26,14 +26,22 @@ namespace Components
          * */
         static void Main(string[] args)
         {
-            ComputationalClient new_client = new ComputationalClient();
+            string port;
+
+
+            
+            Console.Write("Port number: ");
+            port = Console.ReadLine();
+            
+
+            ComputationalClient new_client = new ComputationalClient(int.Parse(port));
 
             Console.Write(usage_info);
 
             ConsoleKeyInfo info = Console.ReadKey();
             if (info.Key == ConsoleKey.Enter)
             {
-                new_client.chooseFile();                                               
+                new_client.chooseFileAndRegister();                                               
             }
 
             Console.Write(usage_info_after_register);
