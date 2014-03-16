@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>UCCTaskSolver</name>
+    </assembly>
+    <members>
+        <member name="M:UCCTaskSolver.TaskSolver.GetInstance">
+            <summary>
+            Uses factory / singleton pattern
+            </summary>
+            <returns>The instance of the solver for a given problem type</returns>
+        </member>
+        <member name="M:UCCTaskSolver.TaskSolver.Solve(System.Byte[],System.Byte[],System.TimeSpan)">
+            <summary>
+            Finds optimal solution (or suboptimal but in the given time) for a provided problem
+            </summary>
+            <param name="commonData">Common data part - problem instance description in base64</param>
+            <param name="partialData">Partial data part - definition of subspace/partial solution to be checked in base64</param>
+            <param name="timeout">Limit of time for computations</param>
+            <returns>Solution in base64</returns>
+        </member>
+        <member name="M:UCCTaskSolver.TaskSolver.DivideProblem(System.Byte[],System.Int32)">
+            <summary>
+            Divides problem into partial problems
+            </summary>
+            <param name="data">Problem instance data in base64</param>
+            <param name="threadCount">Number of threads in the whole cluster</param>
+            <returns>Partial problems in base64</returns>
+        </member>
+        <member name="M:UCCTaskSolver.TaskSolver.MergeSolution(System.Byte[][])">
+            <summary>
+            Merges/chooses the best solution from the set of solutions
+            </summary>
+            <param name="solutions">Partial solutions / suboptimal solutions</param>
+            <returns>The optimal solution</returns>
+        </member>
+    </members>
+</doc>
