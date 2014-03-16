@@ -1,7 +1,7 @@
-D:\computational_cluster\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.dll
-D:\computational_cluster\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.pdb
-D:\computational_cluster\src\CommunicationNetwork\bin\Debug\CommunicationXML.dll
-D:\computational_cluster\src\CommunicationNetwork\bin\Debug\CommunicationXML.pdb
-D:\computational_cluster\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.csprojResolveAssemblyReference.cache
-D:\computational_cluster\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.dll
-D:\computational_cluster\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.pdb
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.dll
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\bin\Debug\CommunicationNetwork.pdb
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\bin\Debug\CommunicationXML.dll
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\bin\Debug\CommunicationXML.pdb
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.csprojResolveAssemblyReference.cache
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.dll
+C:\jablonskim\Dropbox\S6\IO\GIT\src\CommunicationNetwork\obj\Debug\CommunicationNetwork.pdb
