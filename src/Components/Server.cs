@@ -11,14 +11,14 @@ namespace Components
     public class Server
     {
         private int port;
-        private TimeSpan timeout;
+        private DateTime timeout;
         private Listener listener;
         private List<ComputationalNode> computationalNodes;
         private List<TaskManager> taskManagers;
         private List<Problem> problems;
         private object lockObj;
 
-        public Server(int port, TimeSpan timeout)
+        public Server(int port, DateTime timeout)
         {
             this.port = port;
             this.timeout = timeout;
@@ -52,21 +52,21 @@ namespace Components
                 switch (parser.MessageType)
                 {
                     case MessageTypes.Register:
-                        ctx.Send(RegisterNewNode(parser.Message).XMLData);
+                        ctx.Send(RegisterNewNode(parser.Message).GetXmlData());
                         break;
 
                     case MessageTypes.Status:
                         MessageObject taskData = UpdateAndGiveData(parser.Message);
                         if (taskData != null)
-                            ctx.Send(taskData.XMLData);
+                            ctx.Send(taskData.GetXmlData());
                         break;
 
                     case MessageTypes.SolveRequest:
-                        ctx.Send(RegisterNewProblem(parser.Message).XMLData);
+                        ctx.Send(RegisterNewProblem(parser.Message).GetXmlData());
                         break;
 
                     case MessageTypes.SolutionRequest:
-                        ctx.Send(SendSolution(parser.Message).XMLData);
+                        ctx.Send(SendSolution(parser.Message).GetXmlData());
                         break;
 
                     case MessageTypes.SolvePartialProblems:
@@ -200,7 +200,8 @@ namespace Components
                         {
                             newP.Status = ProblemStatus.WaitingForDivision;
                             ulong computationalNodesCount = (ulong)computationalNodes.Sum(t => t.GetAvailableThreads());
-                            response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
+                            //FROM ALBERT: trzeba było zmienić typ data na byte[] więc na razie zakomentowałem
+                            //response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
                             // TODO: Update statusu TM? Nie wiemy który wątek...
                             return response;
                         }
@@ -254,7 +255,7 @@ namespace Components
         {
             while (true)
             {
-                System.Threading.Thread.Sleep(timeout.Milliseconds);
+                System.Threading.Thread.Sleep(timeout.Millisecond);
 
                 lock (lockObj)
                 {
@@ -263,8 +264,8 @@ namespace Components
                     // Jeśli TM nie odpowiada (dzielenie zadania) to zmienic status z WaitingForDivision na New
                     // Jeśli CN nie odpowiada to zmienić status partial problems z Sended na New i problemu z WaitingForPartialSolution na Divided (jeśli trzeba)
                     // Jeśli TM nie odpowiada (łączenie rozwiązania) to zmiana statusu z WaitingForSolution na PartiallySolved
-                    computationalNodes.RemoveAll(x => x.LastTime < DateTime.Now - timeout);
-                    taskManagers.RemoveAll(x => x.LastTime < DateTime.Now - timeout);
+                    computationalNodes.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
+                    taskManagers.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }
             }
         }

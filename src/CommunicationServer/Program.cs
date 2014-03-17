@@ -40,7 +40,7 @@ namespace CommunicationServer
                 return;
             }
 
-            Server s = new Server(port, new TimeSpan(0, 0, timeout));
+            Server s = new Server(port, new DateTime(0, 0, timeout));
         }
     }
 }

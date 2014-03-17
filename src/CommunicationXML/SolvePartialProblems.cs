@@ -8,6 +8,10 @@ namespace CommunicationXML
 {
     public class SolvePartialProblems : MessageObject
     {
-        
+
+        public override byte[] GetXmlData()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

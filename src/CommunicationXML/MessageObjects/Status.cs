@@ -11,12 +11,12 @@ namespace CommunicationXML
         /// <summary>
         /// Id komponentu nadane mu przez serwer
         /// </summary>
-        public ulong Id
+        public UInt64 Id
         {
             get { return id; }
             set { id = value; }
         }
-        private ulong id;
+        private UInt64 id;
 
         /// <summary>
         /// Statusy wątków
@@ -33,7 +33,7 @@ namespace CommunicationXML
         /// </summary>
         /// <param name="_id">Id komponentu</param>
         /// <param name="_threads">Kolekcja stanów wątków</param>
-        public Status(ulong _id, IEnumerable<ComputationalThread> _threads = null)
+        public Status(UInt64 _id, IEnumerable<ComputationalThread> _threads = null)
         {
             if (_threads == null)
                 threads = new List<ComputationalThread>();
@@ -43,6 +43,11 @@ namespace CommunicationXML
             id = _id;
         }
 
-        
+
+
+        public override byte[] GetXmlData()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

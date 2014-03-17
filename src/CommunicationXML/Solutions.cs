@@ -8,5 +8,9 @@ namespace CommunicationXML
 {
     public class Solutions : MessageObject
     {
+        public override byte[] GetXmlData()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

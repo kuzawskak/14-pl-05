@@ -65,6 +65,11 @@ namespace CommunicationXML
             parallelThreads = _parallelThreads;
             solvableProblems = new List<string>(problemNames);
         }
+
+        public override byte[] GetXmlData()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>

@@ -15,29 +15,29 @@ namespace CommunicationXML
         /// <summary>
         /// Id komponentu nadane przez Server
         /// </summary>
-        public ulong Id
+        public UInt64 Id
         {
             get { return id; }
             set { id = value; }
         }
-        private ulong id;
+        private UInt64 id;
 
         /// <summary>
         /// Timeout serwera
         /// </summary>
-        public TimeSpan Timeout
+        public DateTime Timeout
         {
             get { return timeout; }
             set { timeout = value; }
         }
-        private TimeSpan timeout;
+        private DateTime timeout;
 
         /// <summary>
         /// Konstruktor
         /// </summary>
         /// <param name="id">Id komponentu, który nadał Server</param>
         /// <param name="timeout">Timeout serwera</param>
-        public RegisterResponse(ulong _id, TimeSpan _timeout)
+        public RegisterResponse(UInt64 _id, DateTime _timeout)
         {
             //Sprawdzenie poprawności parametrów
             if (_timeout == null)
@@ -45,6 +45,11 @@ namespace CommunicationXML
 
             id = _id;
             timeout = _timeout;
+        }
+
+        public override byte[] GetXmlData()
+        {
+            throw new NotImplementedException();
         }
     }
 }

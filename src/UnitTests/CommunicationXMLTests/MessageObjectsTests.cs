@@ -28,7 +28,7 @@ namespace UnitTests.CommunicationXMLTests
             RegisterResponse registerResponse;
 
             //Act
-            registerResponse = new RegisterResponse((ulong)0, new TimeSpan());
+            registerResponse = new RegisterResponse((ulong)0, new DateTime());
 
             //Assert
             Assert.IsNotNull(registerResponse);
@@ -86,6 +86,71 @@ namespace UnitTests.CommunicationXMLTests
 
             //Assret
             Assert.IsNotNull(status);
+        }
+
+        [TestMethod]
+        public void SolveRequestConstructorTest1()
+        {
+            //Arrange
+            SolveRequest request;
+
+            //Act
+            request = new SolveRequest("type", new byte[0], 1);
+
+            //Assert
+            Assert.IsNotNull(request);
+        }
+
+        [TestMethod]
+        public void SolveRequestConstructorTest2()
+        {
+            //Arrange
+            SolveRequest request;
+
+            //Act
+            request = new SolveRequest("type", new byte[0]);
+
+            //Assert
+            Assert.IsNotNull(request);
+        }
+
+        [TestMethod]
+        public void SolveRequestConstructorTest3()
+        {
+            //Arrange
+            SolveRequest request;
+
+            //Act
+            request = new SolveRequest();
+
+            //Assert
+            Assert.IsNotNull(request);
+        }
+
+        [TestMethod]
+        public void SolveRequestResponseConstructorTest()
+        {
+            //Arrange
+            SolveRequestResponse response;
+
+            //Act
+            response = new SolveRequestResponse(0);
+
+            //Assert
+            Assert.IsNotNull(response);
+        }
+
+        [TestMethod]
+        public void DivideProblemConstructorTest()
+        {
+            //Arrange
+            byte[] data = new byte[0];
+
+            //Act
+            DivideProblem divideProblem = new DivideProblem("name", 1, data, 1);
+
+            //Assert
+            Assert.IsNotNull(divideProblem);
         }
     }
 }

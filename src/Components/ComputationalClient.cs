@@ -48,7 +48,7 @@ namespace Components
                 switch (parser.MessageType)
                 {
                     case MessageTypes.RegisterResponse:
-                        ProblemId = BitConverter.ToUInt64(parser.Message.XMLData, 0);
+                        ProblemId = BitConverter.ToUInt64(parser.Message.GetXmlData(), 0);
                         Console.WriteLine("Problem registered with nr: %l",ProblemId);
                         break;
 
@@ -98,7 +98,7 @@ namespace Components
         {
             SolveRequest solve_request = new SolveRequest();
             ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(solve_request.XMLData); 
+            cc.Send(solve_request.GetXmlData()); 
           
         }
 
@@ -106,7 +106,7 @@ namespace Components
         {            
             SolveRequest solve_request = new SolveRequest();
             ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(solve_request.XMLData);  
+            cc.Send(solve_request.GetXmlData());  
         }
 
 

@@ -33,32 +33,32 @@ namespace CommunicationXML
         /// <summary>
         /// Czas w milisekundach mówiący jak długo wątek jest w aktualnym stanie
         /// </summary>
-        public ulong HowLong
+        public UInt64 HowLong
         {
             get { return howLong; }
             set { howLong = value; }
         }
-        private ulong howLong;
+        private UInt64 howLong;
 
         /// <summary>
         /// Id instancji problemu - null oznacza, że nie ma akurat żadnej instancji
         /// </summary>
-        public ulong? ProblemInstanceId
+        public UInt64? ProblemInstanceId
         {
             get { return problemInstanceId; }
             set { problemInstanceId = value; }
         }
-        private ulong? problemInstanceId;
+        private UInt64? problemInstanceId;
 
         /// <summary>
         /// Id taska, którym zajmuje się wątek - null oznacza, że nie ma akurat żadnej instanjci
         /// </summary>
-        public ulong? TaskId
+        public UInt64? TaskId
         {
             get { return taskId; }
             set { taskId = value; }
         }
-        private ulong? taskId;
+        private UInt64? taskId;
 
         /// <summary>
         /// Nazwa aktualnie rozwiązywanego problemu - null oznacza, że aktualnie nie ma żadnego
@@ -78,8 +78,8 @@ namespace CommunicationXML
         /// <param name="_problemInstanceId">Id instanjci problemu</param>
         /// <param name="_taskId">Id taska</param>
         /// <param name="_problemType">Nazwa problemu</param>
-        public ComputationalThread(ComputationalThreadState _state, ulong _howLong, ulong? _problemInstanceId, 
-            ulong? _taskId, string _problemType)
+        public ComputationalThread(ComputationalThreadState _state, UInt64 _howLong, UInt64? _problemInstanceId,
+            UInt64? _taskId, string _problemType)
         {
             if (_state == ComputationalThreadState.Busy)
                 if (_problemInstanceId == null || _taskId == null || _problemType == null)

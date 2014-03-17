@@ -41,8 +41,9 @@ namespace SolverComponents
                 switch (parser.MessageType)
                 {
                     case MessageTypes.RegisterResponse:
-                        // parser.Message.XMLData.getComponentId()
-                        // parser.Message.XMLData.getTimeout()
+                        //FROM ALBERT: tutaj chyba raczej powinno być : ((RegisterResponse)parser.Message).Id czy coś takiego, bo GetXmlData zwraca binarki gotowe do wysłania
+                        // parser.Message.GetXmlData().getComponentId()
+                        // parser.Message.GetXmlData().getTimeout()
                         //jak otrzyma 
                         Work();
                         break;
