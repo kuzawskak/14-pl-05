@@ -40,7 +40,7 @@ namespace CommunicationXML
         public RegisterResponse(ulong _id, TimeSpan _timeout)
         {
             //Sprawdzenie poprawności parametrów
-            if (_id == null || _timeout == null)
+            if (_timeout == null)
                 throw new System.ArgumentNullException();
 
             id = _id;

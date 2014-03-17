@@ -15,14 +15,14 @@ namespace Components
         public List<string> SolvableProblems { get; private set; }
         public byte ParallelThreads { get; private set; }
         public DateTime LastTime { get; private set; }
-        public List<Thread> Threads { get; private set; }
+        public List<ComputationalThread> Threads { get; private set; }
 
         public Node(List<string> solvableProblems, byte parallelThreads)
         {
             Id = ++lastId;
             SolvableProblems = solvableProblems;
             ParallelThreads = parallelThreads;
-            Threads = new List<Thread>();
+            Threads = new List<ComputationalThread>();
 
             Update();
         }
@@ -32,7 +32,7 @@ namespace Components
             LastTime = DateTime.Now;
         }
 
-        public void Update(List<Thread> th)
+        public void Update(List<ComputationalThread> th)
         {
             Threads = th;
             Update();
@@ -40,7 +40,7 @@ namespace Components
 
         public long GetAvailableThreads()
         {
-            return (long)Threads.Where(x => x.State == CommunicationXML.ThreadState.Idle).Count();
+            return (long)Threads.Where(x => x.State == CommunicationXML.ComputationalThreadState.Idle).Count();
         }
     }
 }

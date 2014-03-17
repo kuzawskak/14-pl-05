@@ -92,7 +92,7 @@ namespace CommunicationNetwork
         /// <param name="cli"></param>
         void ThreadWork(object cli)
         {
-            Console.WriteLine("Thread has been started");
+            Console.WriteLine("ComputationalThread has been started");
             TcpClient _cli = null;
             try
             {
