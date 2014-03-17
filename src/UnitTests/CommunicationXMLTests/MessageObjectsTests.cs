@@ -152,5 +152,75 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(divideProblem);
         }
+
+        [TestMethod]
+        public void SolutionRequestConstructorTest()
+        {
+            //Arrange
+            SolutionRequest solutionRequest;
+
+            //Act
+            solutionRequest = new SolutionRequest(0);
+
+            //Assert
+            Assert.IsNotNull(solutionRequest);
+        }
+
+        [TestMethod]
+        public void PartialProblemConstructorTest()
+        {
+            //Arrange
+            byte[] data = new byte[0];
+
+            //Act
+            PartialProblem partialProblem = new PartialProblem(0, data);
+
+            //Assert
+            Assert.IsNotNull(partialProblem);
+        }
+
+        [TestMethod]
+        public void SolvePartialProblemsCOnstructorTest()
+        {
+            //Arrange
+            byte[] data = new byte[0];
+            PartialProblem[] partialProblems = new PartialProblem[]{ new PartialProblem(0, (byte[])data.Clone()),
+                new PartialProblem(1, (byte[])data.Clone()) };
+
+            //Act
+            SolvePartialProblems solvePartialProblems = new SolvePartialProblems("name",
+                0, data, null, partialProblems);
+
+            //Assert
+            Assert.IsNotNull(solvePartialProblems);
+            
+        }
+
+        [TestMethod]
+        public void SolutionConstructorTest()
+        {
+            //Arrange
+            byte[] data = new byte[0];
+
+            //Act
+            Solution solution = new Solution(0, true, SolutionType.Final, 120, data);
+
+            //Assert
+            Assert.IsNotNull(solution);
+        }
+
+        [TestMethod]
+        public void SolutionsConstructorTest()
+        {
+            //Arrange
+            byte[] commonData = new byte[0];
+            Solution[] solutionsArray = new Solution[]{new Solution(0, true, SolutionType.Ongoing, 120, new byte[0])};
+
+            //Act
+            Solutions solutions = new Solutions("name", 0, commonData, solutionsArray);
+
+            //Assert
+            Assert.IsNotNull(solutions);
+        }
     }
 }

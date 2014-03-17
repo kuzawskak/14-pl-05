@@ -14,12 +14,12 @@ namespace CommunicationXML
         /// <summary>
         /// Nazwa problemu do rozwiązania
         /// </summary>
-        public string ProblemType
+        public String ProblemType
         {
             get { return problemType; }
             set { problemType = value; }
         }
-        private string problemType;
+        private String problemType;
 
         /// <summary>
         /// Timeout w jakim powinno zostać dostarczone rozwiązanie - null oznacza brak timeoutu

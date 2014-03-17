@@ -24,12 +24,12 @@ namespace CommunicationXML
         /// <summary>
         /// Lista nazw problemów, które komponent może obsługiwać
         /// </summary>
-        public List<string> SolvableProblems
+        public List<String> SolvableProblems
         {
             get { return solvableProblems; }
             set { solvableProblems = value; }
         }
-        private List<string> solvableProblems;
+        private List<String> solvableProblems;
 
         /// <summary>
         /// Typ komponentu, który się rejestruje
@@ -63,7 +63,7 @@ namespace CommunicationXML
 
             type = _type;
             parallelThreads = _parallelThreads;
-            solvableProblems = new List<string>(problemNames);
+            solvableProblems = new List<String>(problemNames);
         }
 
         public override byte[] GetXmlData()

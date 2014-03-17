@@ -41,16 +41,19 @@
   <ItemGroup>
     <Compile Include="MessageObjects\DivideProblem.cs" />
     <Compile Include="MessageObjects\MessageObject.cs" />
+    <Compile Include="MessageObjects\SolutionRequest.cs" />
+    <Compile Include="MessageObjects\PartialProblem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MessageObjects\Register.cs" />
     <Compile Include="MessageObjects\RegisterResponse.cs" />
-    <Compile Include="Solutions.cs" />
-    <Compile Include="SolvePartialProblems.cs" />
+    <Compile Include="MessageObjects\Solution.cs" />
+    <Compile Include="MessageObjects\Solutions.cs" />
+    <Compile Include="MessageObjects\SolvePartialProblems.cs" />
     <Compile Include="MessageObjects\SolveRequest.cs" />
     <Compile Include="MessageObjects\SolveRequestResponse.cs" />
     <Compile Include="MessageObjects\Status.cs" />
     <Compile Include="MessageObjects\Thread.cs" />
-    <Compile Include="XMLParser.cs" />
+    <Compile Include="Parser\XMLParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

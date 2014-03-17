@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace CommunicationXML
 {
-    public class DivideProblem : MessageObject
+    /// <summary>
+    /// Klasa reprezentująca wiadomości typu Solutions
+    /// </summary>
+    public class Solutions : MessageObject
     {
         /// <summary>
         /// Nazwa typu problemu
@@ -29,41 +32,41 @@ namespace CommunicationXML
         private UInt64 id;
 
         /// <summary>
-        /// Dane problemu
+        /// Dane wspólne
         /// </summary>
-        public byte[] Data
+        public byte[] CommonData
         {
-            get { return data; }
-            set { data = value; }
+            get { return commonData; }
+            set { commonData = value; }
         }
-        private byte[] data;
+        private byte[] commonData;
 
         /// <summary>
-        /// Liczba dostępnych w danej chwili wątków
+        /// Lista rozwiązań
         /// </summary>
-        public UInt64 ComputationalNodes
+        public List<Solution> SolutionsList
         {
-            get { return computationalNodes; }
-            set { computationalNodes = value; }
+            get { return solutions; }
+            set { solutions = value; }
         }
-        private UInt64 computationalNodes;
+        private List<Solution> solutions;
 
         /// <summary>
-        /// Konstruktor obiektu DivideProblem
+        /// Konstruktor obiektów Solutions
         /// </summary>
-        /// <param name="_problemType">Typ problemu</param>
-        /// <param name="_id">Id problemu nadane przez serwer</param>
-        /// <param name="_data">Dane problemu</param>
-        /// <param name="_computationalNodes">Liczba dostępnych wątków</param>
-        public DivideProblem(string _problemType, UInt64 _id, byte [] _data, UInt64 _computationalNodes)
+        /// <param name="_problemType">Nazwa typu problemu</param>
+        /// <param name="_id">Id instancji problemu nadane przez serwer</param>
+        /// <param name="_commonData">Dane wspólne</param>
+        /// <param name="_solutions">Lista rozwiązań</param>
+        public Solutions(String _problemType, UInt64 _id, byte[] _commonData, IEnumerable<Solution> _solutions)
         {
-            if (_data == null)
+            if (_commonData == null || _solutions == null)
                 throw new System.ArgumentNullException();
 
             problemType = _problemType;
             id = _id;
-            data = _data;
-            computationalNodes = _computationalNodes;
+            commonData = _commonData;
+            solutions = new List<Solution>(_solutions);
         }
 
         public override byte[] GetXmlData()

@@ -63,12 +63,12 @@ namespace CommunicationXML
         /// <summary>
         /// Nazwa aktualnie rozwiązywanego problemu - null oznacza, że aktualnie nie ma żadnego
         /// </summary>
-        public string ProblemType
+        public String ProblemType
         {
             get { return problemType; }
             set { problemType = value; }
         }
-        private string problemType;
+        private String problemType;
 
         /// <summary>
         /// Konstruktor obiektów ComputationalThread
@@ -79,7 +79,7 @@ namespace CommunicationXML
         /// <param name="_taskId">Id taska</param>
         /// <param name="_problemType">Nazwa problemu</param>
         public ComputationalThread(ComputationalThreadState _state, UInt64 _howLong, UInt64? _problemInstanceId,
-            UInt64? _taskId, string _problemType)
+            UInt64? _taskId, String _problemType)
         {
             if (_state == ComputationalThreadState.Busy)
                 if (_problemInstanceId == null || _taskId == null || _problemType == null)
