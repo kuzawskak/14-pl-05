@@ -26,14 +26,10 @@ namespace Components
          * */
         static void Main(string[] args)
         {
-            string port;
-
-
-            
+            string port;           
             Console.Write("Port number: ");
             port = Console.ReadLine();
             
-
             ComputationalClient new_client = new ComputationalClient(int.Parse(port));
 
             Console.Write(usage_info);
@@ -48,9 +44,8 @@ namespace Components
             info = Console.ReadKey();
             if (info.Key == ConsoleKey.A)
             {
-                //get problem status
-                String status = new_client.getProblemStatus();
-                Console.Write("Problem status is: " + status);
+                //send request to get problem status
+                new_client.getProblemStatus();
             }
                  
             Console.Read();

@@ -11,12 +11,18 @@ using CommunicationXML;
 
 namespace Components
 {
+    //TODO:
+   // add method to close node, but the id must be saved in some file
+    //w konstruktorze sprawdzic czy jest cos w pliku z zapisanym stanem
+    //plik z numerem portu dodatkwoo
+    //jak zakonczy przetwarzanie po time-out lub rozwiazniu problemu to usuwamy plik
+
+
+
 
     public class ComputationalClient
     {
         private Listener listener;
-
-       // private static string ProblemDataFilepath { get;  set; }
         private ulong ProblemId { get;  set; }
 
 
@@ -83,34 +89,36 @@ namespace Components
                 XmlDocument problem_data_xml = new XmlDocument();
                 problem_data_xml.Load(problem_data_filepath);
                 byte[] problem_data_bytes = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
-                ProblemId = registerProblem(problem_data_bytes);
+                registerProblem(problem_data_bytes);
             }
         }
 
 
-        public static ulong registerProblem(byte[] problem_data)
+        public static void registerProblem(byte[] problem_data)
         {
-            ulong problemInstanceId = 0;
-            //open connect with serwer
+            SolveRequest solve_request = new SolveRequest();
             ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(problem_data);   
-            //we must listen to server to get message
-            return problemInstanceId;
+            cc.Send(solve_request.XMLData); 
+          
         }
 
-        public string getProblemStatus()
-        {
-            //TODO:
-
-            //create xml with message including problem_id to ask about computation status
-            //or send just a byte array (?)
-            byte[] problem_data = null;
+        public void getProblemStatus()
+        {            
+            SolveRequest solve_request = new SolveRequest();
             ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(problem_data);   
-            return null;
+            cc.Send(solve_request.XMLData);  
         }
 
 
+
+
+        //metoda obslugujaca zamkniecie CC na czas przetwarzania
+        public void TemporaryCloseForComputation()
+        {
+            //zapis stanu (port na ktorym nasluchuje i ProblemId) do XML lub innego pliku
+
+
+        }
 
     }
 }

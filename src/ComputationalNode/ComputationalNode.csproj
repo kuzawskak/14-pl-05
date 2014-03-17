@@ -48,9 +48,21 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CommunicationNetwork\CommunicationNetwork.csproj">
+      <Project>{a04ccf40-b77a-4bf8-b1af-01dd7903cdec}</Project>
+      <Name>CommunicationNetwork</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommunicationXML\CommunicationXML.csproj">
+      <Project>{5f1f05bb-243f-42be-889d-af6c964771f6}</Project>
+      <Name>CommunicationXML</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Components\Components.csproj">
       <Project>{e5e545a8-5f2d-4f61-b785-1bebb8b9df76}</Project>
       <Name>Components</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SolverComponents\SolverComponents.csproj">
+      <Project>{1389dbc9-8f6e-421e-93dc-4d884a63c22d}</Project>
+      <Name>SolverComponents</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

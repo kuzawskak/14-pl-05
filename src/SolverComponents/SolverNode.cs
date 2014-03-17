@@ -7,19 +7,14 @@ using CommunicationNetwork;
 using CommunicationXML;
 
 namespace SolverComponents
-{
-    class SolverNode
-    {
-
-        enum NodeType
+{  
+        public enum NodeType
         {
             problemType1,
             problemType2
         }
 
-
-
-        class TMNode : SolverNode
+        public class SolverNode
         {
 
             private List<NodeType> SolvalableProblems;
@@ -27,9 +22,9 @@ namespace SolverComponents
             private Listener listener;
             private int time;
             private ulong ComponentId;
-            private System.Threading.ThreadPool working_threads;
+           
             //konstruktor
-            public TMNode(List<NodeType> solvalable_problems, int port_number)
+            public SolverNode( int port_number,List<NodeType> solvalable_problems)
             {
                 SolvalableProblems = solvalable_problems;
                 ComputationalPower = Environment.ProcessorCount;
@@ -70,6 +65,7 @@ namespace SolverComponents
                 }
             }
 
+
             //rejestracja u CS
             public void RegisterNode()
             {
@@ -92,11 +88,6 @@ namespace SolverComponents
                
             }
 
-
-
-
         }
-    }
 
-    
 }

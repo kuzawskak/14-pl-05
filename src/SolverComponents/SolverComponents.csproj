@@ -41,11 +41,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CNNode.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SolverNode.cs" />
+    <Compile Include="TMNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommunicationNetwork\CommunicationNetwork.csproj">
+      <Project>{a04ccf40-b77a-4bf8-b1af-01dd7903cdec}</Project>
+      <Name>CommunicationNetwork</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommunicationXML\CommunicationXML.csproj">
+      <Project>{5f1f05bb-243f-42be-889d-af6c964771f6}</Project>
+      <Name>CommunicationXML</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
