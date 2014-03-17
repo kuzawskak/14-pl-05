@@ -41,7 +41,6 @@ namespace CommunicationXML
                 threads = new List<ComputationalThread>(_threads);
 
             id = _id;
-            
         }
 
         
