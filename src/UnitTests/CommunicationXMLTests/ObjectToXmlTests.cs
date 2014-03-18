@@ -13,7 +13,7 @@ namespace UnitTests.CommunicationXMLTests
         public void RegisterResponseToXmlTest()
         {
             //Arrange
-            RegisterResponse rr = new RegisterResponse(0, DateTime.Now);
+            RegisterResponse rr = new RegisterResponse(0, new TimeSpan(0));
 
             //Act
             byte[] data = rr.GetXmlData();

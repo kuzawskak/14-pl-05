@@ -54,7 +54,7 @@ namespace CommunicationXML
         /// </summary>
         public RegisterResponse() : base()
         {
-            timeout = DateTime.Now;
+            timeout = new TimeSpan(0);
             id = 0;
         }
 
