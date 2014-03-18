@@ -28,7 +28,7 @@ namespace UnitTests.CommunicationXMLTests
             RegisterResponse registerResponse;
 
             //Act
-            registerResponse = new RegisterResponse((ulong)0, new DateTime());
+            registerResponse = new RegisterResponse((ulong)0, new TimeSpan());
 
             //Assert
             Assert.IsNotNull(registerResponse);

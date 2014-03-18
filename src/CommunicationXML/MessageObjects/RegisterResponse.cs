@@ -25,19 +25,19 @@ namespace CommunicationXML
         /// <summary>
         /// Timeout serwera
         /// </summary>
-        public DateTime Timeout
+        public TimeSpan Timeout
         {
             get { return timeout; }
             set { timeout = value; }
         }
-        private DateTime timeout;
+        private TimeSpan timeout;
 
         /// <summary>
         /// Konstruktor
         /// </summary>
         /// <param name="id">Id komponentu, który nadał Server</param>
         /// <param name="timeout">Timeout serwera</param>
-        public RegisterResponse(UInt64 _id, DateTime _timeout)
+        public RegisterResponse(UInt64 _id, TimeSpan _timeout)
         {
             //Sprawdzenie poprawności parametrów
             if (_timeout == null)

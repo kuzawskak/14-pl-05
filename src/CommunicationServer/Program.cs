@@ -40,7 +40,14 @@ namespace CommunicationServer
                 return;
             }
 
-            Server s = new Server(port, new DateTime(0, 0, timeout));
+            Server s = new Server(port, new TimeSpan(0, 0, timeout));
+
+            Task serverThread = Task.Factory.StartNew(s.Start);
+
+            Console.WriteLine("Server is running on port {0}. Press ESC to stop...", port);
+            while (Console.ReadKey(true).Key != ConsoleKey.Escape) ;
+
+            s.Stop();
         }
     }
 }
