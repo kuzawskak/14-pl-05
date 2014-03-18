@@ -27,26 +27,27 @@ namespace CommunicationXML
         /// Timeout serwera
         /// </summary>
         [XmlElement(DataType="time")]
-		public TimeSpan Timeout
+		public DateTime Timeout
         {
             get { return timeout; }
             set { timeout = value; }
         }
-        private TimeSpan timeout;
+        private DateTime timeout;
 
         /// <summary>
         /// Konstruktor
         /// </summary>
         /// <param name="id">Id komponentu, który nadał Server</param>
         /// <param name="timeout">Timeout serwera</param>
-        public RegisterResponse(UInt64 _id, TimeSpan _timeout) : base()
+        public RegisterResponse(UInt64 _id, TimeSpan _timeout)
+            : base()
         {
             //Sprawdzenie poprawności parametrów
             if (_timeout == null)
                 throw new System.ArgumentNullException();
 
             id = _id;
-            timeout = _timeout;
+            timeout = Convert.ToDateTime(_timeout.ToString());
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace CommunicationXML
         /// </summary>
         public RegisterResponse() : base()
         {
-            timeout = new TimeSpan(0);
+            timeout = new DateTime(0);
             id = 0;
         }
 

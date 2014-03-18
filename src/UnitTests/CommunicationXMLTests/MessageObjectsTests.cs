@@ -180,7 +180,7 @@ namespace UnitTests.CommunicationXMLTests
         }
 
         [TestMethod]
-        public void SolvePartialProblemsCOnstructorTest()
+        public void SolvePartialProblemsConstructorTest()
         {
             //Arrange
             byte[] data = new byte[0];
