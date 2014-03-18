@@ -21,7 +21,7 @@ namespace UnitTests.CommunicationNetwork
             // String to store the response ASCII representation.
             String responseData = String.Empty;
 
-            // Read the first batch of the TcpServer response bytes.
+            // Read the first batch of the TcpServer response bytesToConvert.
             Int32 bytes = ns.Read(data, 0, data.Length);
             responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
             Console.WriteLine("Received: {0}", responseData);
