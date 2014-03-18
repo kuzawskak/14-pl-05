@@ -1,39 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CommunicationXML
 {
     /// <summary>
     /// Klasa odpowiadająca wiadomości Register message
     /// </summary>
+    [XmlRoot(Namespace = ADRES)]
     public class Register : MessageObject
     {
-        /// <summary>
-        /// Liczba wątków, które mogą być równolegle wykonywane
-        /// </summary>
-        public byte ParallelThreads
-        {
-            get { return parallelThreads; }
-            set { parallelThreads = value; }
-        }
-        private byte parallelThreads;
-
-        /// <summary>
-        /// Lista nazw problemów, które komponent może obsługiwać
-        /// </summary>
-        public List<String> SolvableProblems
-        {
-            get { return solvableProblems; }
-            set { solvableProblems = value; }
-        }
-        private List<String> solvableProblems;
+        private const string PROBLEM_NAME = "ProblemName";
 
         /// <summary>
         /// Typ komponentu, który się rejestruje
         /// </summary>
+        [XmlIgnore]
         public NodeType Type
         {
             get { return type; }
@@ -42,12 +28,58 @@ namespace CommunicationXML
         private NodeType type;
 
         /// <summary>
+        /// Właściwość potrzebna do poprawnego serializowania właściwości Type
+        /// </summary>
+        [XmlElement(ElementName = "Type")]
+        public string XmlNodeType
+        {
+            get
+            {
+                return Enum.GetName(typeof(NodeType), type);
+            }
+
+            set
+            {
+                type = (NodeType)Enum.Parse(typeof(NodeType), value);
+            }
+
+        }
+
+        /// <summary>
+        /// Lista nazw problemów, które komponent może obsługiwać
+        /// </summary>
+        [XmlArray]
+        [XmlArrayItem(PROBLEM_NAME)]
+        public List<String> SolvableProblems
+        {
+            get { return solvableProblems; }
+            set 
+            {
+                if (value == null)
+                    throw new System.ArgumentNullException("Solvable problems cannot be null");
+                solvableProblems = value; 
+            }
+        }
+        private List<String> solvableProblems;
+
+        /// <summary>
+        /// Liczba wątków, które mogą być równolegle wykonywane
+        /// </summary>
+        [XmlElement]
+        public byte ParallelThreads
+        {
+            get { return parallelThreads; }
+            set { parallelThreads = value; }
+        }
+        private byte parallelThreads;
+
+        /// <summary>
         /// Konstruktor obiektu Register
         /// </summary>
         /// <param name="_type">Typ rejestrowanego komponentu</param>
         /// <param name="_parallelThreads">Liczba równoległych wątków, które mogą być efektywnie wykonane</param>
         /// <param name="problemNames">Lista nazw problemów, które komponent może rozwiązywać</param>
-        public Register(NodeType _type, byte _parallelThreads, IEnumerable<String> problemNames)
+        public Register(NodeType _type, byte _parallelThreads, IEnumerable<String> problemNames) : base()
         {
             //Sprawdzamy poprawność argumentu _type - jeśli jest nullem lub na złą wartość poleci wyjątek
             Enum.GetName(typeof(NodeType), _type);
@@ -66,9 +98,33 @@ namespace CommunicationXML
             solvableProblems = new List<String>(problemNames);
         }
 
+        /// <summary>
+        /// Bezparametrowy konstruktor na potrzeby serializacji Xml
+        /// </summary>
+        public Register()
+        {
+            type = 0;
+            parallelThreads = 0;
+            solvableProblems = new List<string>();
+        }
+
         public override byte[] GetXmlData()
         {
-            throw new NotImplementedException();
+            if (solvableProblems.Count == 0)
+                throw new System.InvalidOperationException("Solvable problems cannot be empty");
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Register));
+            StringBuilder sb = new StringBuilder();
+            StringWriter stringWriter = new StringWriter(sb);
+            serializer.Serialize(stringWriter, this);
+
+            //Testowa deserializacja
+            //using(TextReader reader = new StringReader(sb.ToString()))
+            //{
+            //    Register r = (Register)serializer.Deserialize(reader);
+            //}
+
+            return StringToBytesConverter.GetBytes(sb.ToString());
         }
     }
 

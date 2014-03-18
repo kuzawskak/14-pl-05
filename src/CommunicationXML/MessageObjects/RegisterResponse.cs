@@ -1,20 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CommunicationXML
 {
     /// <summary>
     /// Klasa odpowiadająca wiadomości ReisterResponseMessage
     /// </summary>
+    [XmlRoot(Namespace = ADRES)]
     public class RegisterResponse : MessageObject
     {
         
         /// <summary>
         /// Id komponentu nadane przez Server
         /// </summary>
+        [XmlElement]
         public UInt64 Id
         {
             get { return id; }
@@ -25,7 +26,8 @@ namespace CommunicationXML
         /// <summary>
         /// Timeout serwera
         /// </summary>
-        public TimeSpan Timeout
+        [XmlElement(DataType="time")]
+		public TimeSpan Timeout
         {
             get { return timeout; }
             set { timeout = value; }
@@ -37,7 +39,7 @@ namespace CommunicationXML
         /// </summary>
         /// <param name="id">Id komponentu, który nadał Server</param>
         /// <param name="timeout">Timeout serwera</param>
-        public RegisterResponse(UInt64 _id, TimeSpan _timeout)
+        public RegisterResponse(UInt64 _id, TimeSpan _timeout) : base()
         {
             //Sprawdzenie poprawności parametrów
             if (_timeout == null)
@@ -47,9 +49,24 @@ namespace CommunicationXML
             timeout = _timeout;
         }
 
+        /// <summary>
+        /// Bezparametrowy konstruktor na potrzeby serializacji Xml
+        /// </summary>
+        public RegisterResponse() : base()
+        {
+            timeout = DateTime.Now;
+            id = 0;
+        }
+
+
         public override byte[] GetXmlData()
         {
-            throw new NotImplementedException();
+            XmlSerializer serializer = new XmlSerializer(typeof(RegisterResponse));
+            StringBuilder sb = new StringBuilder();
+            StringWriter stringWriter = new StringWriter(sb);
+            serializer.Serialize(stringWriter, this);
+
+            return StringToBytesConverter.GetBytes(sb.ToString());
         }
     }
 }
