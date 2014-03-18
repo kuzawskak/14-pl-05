@@ -87,7 +87,6 @@ namespace Components
         private Solutions SendSolution(MessageObject obj)
         {
             Solutions response = null;
-            /* FOR: Albert
             SolutionRequest request = obj as SolutionRequest;
 
             Problem p = problems.Find(x => x.Id == request.Id);
@@ -99,7 +98,7 @@ namespace Components
 
                 if(p.Status == ProblemStatus.Solved)
                 {
-                    solutions.Add(new Solution(p.TimeoutOccured, SolutionTypes.Final, p.ComputationsTime, p.Data));
+                    solutions.Add(new Solution(p.TimeoutOccured, SolutionType.Final, p.ComputationsTime, p.Data));
                 }
                 else
                 {
@@ -108,12 +107,12 @@ namespace Components
                         solutions.Add(
                             new Solution(s.TaskId, s.TimeoutOccured, 
                                 s.PartialProblemStatus == PartialProblemStatuses.Solved ? 
-                                SolutionTypes.Partial : SolutionTypes.Ongoing, s.ComputationsTime, s.Data));
+                                SolutionType.Partial : SolutionType.Ongoing, s.ComputationsTime, s.Data));
                     }
                 }
 
-                response = new Solutions(p.Id, p.ProblemType, p.CommonData, solutions);
-            }*/
+                response = new Solutions(p.ProblemType, p.Id, p.CommonData, solutions);
+            }
 
             return response;
         }
@@ -127,14 +126,13 @@ namespace Components
             Solutions solutions = obj as Solutions;
 
             // TODO: Aktualizować osttni czas i wątki CN/TM? (NIE?)
-            /* FOR: Albert
             Problem p = problems.Find(x => x.Id == solutions.Id && x.ProblemType == solutions.ProblemType);
 
             if (p != null)
             {
-                p.SetSolutions(solutions.Solutions);
+                p.SetSolutions(solutions.SolutionsList);
                 // TODO: Aktualizacaja wątków odpowiedniego CN/TM? Zaktualizują sie przy następnym Status?
-            }*/
+            }
         }
 
         /// <summary>
@@ -146,13 +144,12 @@ namespace Components
             // TODO: Czy zmienić informację o wolnych wątkach TM?
             SolvePartialProblems partialProblems = obj as SolvePartialProblems;
 
-            /* FOR: Albert :: te wszystkie pola w klasie :P
             Problem p = problems.Find(x => x.Id == partialProblems.Id && x.ProblemType == partialProblems.ProblemType);
 
             if (p != null && p.Status == ProblemStatus.WaitingForDivision)
             {
                 p.SetPartialProblems(partialProblems.CommonData, partialProblems.PartialProblems);
-            }*/
+            }
         }
 
         /// <summary>
@@ -182,16 +179,16 @@ namespace Components
                         if (partialP != null)
                         {
                             partialP.Status = ProblemStatus.WaitingForSolutions;
-                            /* FOR: Albert
+
                             List<Solution> solutions = new List<Solution>();
 
                             foreach (var pp in partialP.PartialProblems)
                             {
-                                solutions.Add(new Solution(pp.TaskId, pp.TimeoutOccures, SolutionTypes.Partial, pp.ComputationsTime, pp.Data));
+                                solutions.Add(new Solution(pp.TaskId, pp.TimeoutOccured, SolutionType.Partial, pp.ComputationsTime, pp.Data));
                             }
 
-                            response = new Solutions(partialP.Id, partialP.ProblemType, partialP.CommonData, solutions);
-                            return response;*/
+                            response = new Solutions(partialP.ProblemType, partialP.Id, partialP.CommonData, solutions);
+                            return response;
                         }
 
                         Problem newP = problems.Find(t => t.Status == ProblemStatus.New);
@@ -200,13 +197,10 @@ namespace Components
                         {
                             newP.Status = ProblemStatus.WaitingForDivision;
                             ulong computationalNodesCount = (ulong)computationalNodes.Sum(t => t.GetAvailableThreads());
-                            //FROM ALBERT: trzeba było zmienić typ data na byte[] więc na razie zakomentowałem
-                            //response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
+                            response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
                             // TODO: Update statusu TM? Nie wiemy który wątek...
                             return response;
                         }
-
-                        // TODO: Wysyłanie Solutions do połączenia.
                     }
                     else    // ComputationalNode
                     {
@@ -214,11 +208,10 @@ namespace Components
 
                         if (dividedP != null)
                         {
-                            /* FOR: Albert: Konstruktor (po odkomentowaniu podkreśli GetPartialProblem... => trzeba odkomentować w Problem.cs
                             response =
-                                new SolvePartialProblems(dividedP.Id, dividedP.ProblemType,
+                                new SolvePartialProblems(dividedP.ProblemType, dividedP.Id,
                                     dividedP.CommonData, dividedP.SolvingTimeout,
-                                    dividedP.GetPartialProblemListToSolve(node.GetAvailableThreads()));*/
+                                    dividedP.GetPartialProblemListToSolve(node.GetAvailableThreads()));
 
                             // TODO: Update statusu wątków CN? Ale nie wiemy który wątek zacznie wykonywać obliczenia...
                             return response;
@@ -240,10 +233,9 @@ namespace Components
             SolveRequest req = obj as SolveRequest;
             SolveRequestResponse response = null;
 
-            /* FOR: Albert :: pola ProblemType, Data, SolvingTimeout w SolveRequest
             Problem p =  new Problem(req.ProblemType, req.Data, req.SolvingTimeout);
             problems.Add(p);
-            response = new SolveRequestResponse(p.Id);*/
+            response = new SolveRequestResponse(p.Id);
 
             return response;
         }
@@ -261,9 +253,9 @@ namespace Components
                 {
                     // TODO: jeśli dany CN i TM coś obliczał to zmienić (cofnąć) status zadania.
                     // TODO: w przypadku CN trzeba wycofać odpowiedni podzbiór zadań!!!
-                    // Jeśli TM nie odpowiada (dzielenie zadania) to zmienic status z WaitingForDivision na New
-                    // Jeśli CN nie odpowiada to zmienić status partial problems z Sended na New i problemu z WaitingForPartialSolution na Divided (jeśli trzeba)
-                    // Jeśli TM nie odpowiada (łączenie rozwiązania) to zmiana statusu z WaitingForSolution na PartiallySolved
+                    // Jeśli TM nie odpowiada (dzielenie zadania) to zmienic status z WaitingForDivision! na New
+                    // Jeśli CN nie odpowiada to zmienić status partial problems z Sended! na New i problemu z WaitingForPartialSolution! na Divided (jeśli trzeba)
+                    // Jeśli TM nie odpowiada (łączenie rozwiązania) to zmiana statusu z WaitingForSolution! na PartiallySolved
                     computationalNodes.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                     taskManagers.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }

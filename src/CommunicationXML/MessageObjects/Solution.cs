@@ -14,12 +14,12 @@ namespace CommunicationXML
         /// <summary>
         /// Id podproblemu nadane przez Task Solver
         /// </summary>
-        public UInt64 Id
+        public UInt64? TaskId
         {
             get { return id; }
             set { id = value; }
         }
-        private UInt64 id;
+        private UInt64? id;
 
         /// <summary>
         /// Informacja czy wystąpił timeout
@@ -69,7 +69,7 @@ namespace CommunicationXML
         /// <param name="_type">Typ rozwiązania</param>
         /// <param name="_computationsTime">Sumaryczny czas obliczeń przez wątki</param>
         /// <param name="_data">Dane rozwiązania</param>
-        public Solution(UInt64 _id, Boolean _timeoutOccured, SolutionType _type, UInt64 _computationsTime, byte[] _data)
+        public Solution(UInt64? _id, Boolean _timeoutOccured, SolutionType _type, UInt64 _computationsTime, byte[] _data)
         {
             if (_data == null)
                 throw new System.ArgumentNullException();
@@ -79,6 +79,18 @@ namespace CommunicationXML
             type = _type;
             computationsTime = _computationsTime;
             data = _data;
+        }
+
+        /// <summary>
+        /// Konstruktor obiektów Solution
+        /// </summary>
+        /// <param name="_timeoutOccured">Czy wystąpił timeout</param>
+        /// <param name="_type">Typ rozwiązania</param>
+        /// <param name="_computationsTime">Sumaryczny czas obliczeń przez wątki</param>
+        /// <param name="_data">Dane rozwiązania</param>
+        public Solution(Boolean _timeoutOccured, SolutionType _type, UInt64 _computationsTime, byte[] _data)
+            : this(null, _timeoutOccured, _type, _computationsTime, _data)
+        {
         }
     }
 

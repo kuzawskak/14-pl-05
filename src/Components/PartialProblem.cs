@@ -15,12 +15,12 @@ namespace Components
     class PartialProblem
     {
         public ulong TaskId { get; private set; }
-        public string Data { get; set; }
+        public byte[] Data { get; set; }
         public PartialProblemStatuses PartialProblemStatus { get; set; }
         public ulong ComputationsTime { get; set; }
         public bool TimeoutOccured { get; set; }
 
-        public PartialProblem(ulong taskId, string data)
+        public PartialProblem(ulong taskId, byte[] data)
         {
             TaskId = taskId;
             Data = data;

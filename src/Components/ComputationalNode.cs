@@ -10,8 +10,8 @@ namespace Components
         public ComputationalNode(List<string> solvableProblems, byte parallelThreads)
             : base(solvableProblems, parallelThreads)
         {
+            // TO JEST KLASA TYLKO DLA SERWERA!
+            // moze trzeba ją przenieść?
         }
-
-        
     }
 }
