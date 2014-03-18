@@ -21,18 +21,23 @@ namespace Components
         private static ulong lastId = 0;
 
         public ulong Id { get; private set; }
-        public string Data { get; private set; }    // base64 string | Data i SolutionData
-        public string CommonData { get; private set; } // base64 string
+        public byte[] Data { get; private set; }    // base64 string | Data i SolutionData
+        public byte[] CommonData { get; private set; } // base64 string
         public ulong? SolvingTimeout { get; private set; }
         public string ProblemType { get; private set; }
         public ProblemStatus Status { get; set; }
         public List<PartialProblem> PartialProblems { get; private set; }
 
-        // Timeout dla jednego watku oznacza timeout dla calego zadania!
         public bool TimeoutOccured { get; private set; }
         public ulong ComputationsTime { get; private set; }
 
-        public Problem(string problemType, string data, ulong? timeout = null)
+        /// <summary>
+        /// Konstruktor Problemu
+        /// </summary>
+        /// <param name="problemType">Typ problemu</param>
+        /// <param name="data">Dane</param>
+        /// <param name="timeout">Timeout</param>
+        public Problem(string problemType, byte[] data, ulong? timeout = null)
         {
             Id = ++lastId;
             Data = data;
@@ -46,10 +51,13 @@ namespace Components
             Status = ProblemStatus.New;
         }
 
-        /* FOR: Albert
-        public void SetSolutions(List<Solution> solutions)
+        /// <summary>
+        /// Zapisywanie rozwiązań częściowych i rozwiązania ogólnego.
+        /// </summary>
+        /// <param name="solutions">Lista rozwiązań</param>
+        public void SetSolutions(List<CommunicationXML.Solution> solutions)
         {
-            Solution finalSolution = solutions.Find(x => x.Type == SolutionTypes.Final);
+            CommunicationXML.Solution finalSolution = solutions.Find(x => x.Type == CommunicationXML.SolutionType.Final);
 
             if (finalSolution != null)
             {
@@ -68,7 +76,7 @@ namespace Components
             }
             else
             {
-                foreach (Solution s in solutions)
+                foreach (CommunicationXML.Solution s in solutions)
                 {
                     if (s.TaskId == null)
                         continue; // Błąd który nie powinien wystąpić
@@ -86,13 +94,13 @@ namespace Components
                     if (pp != null)
                     {
                         // TODO: które wątki skończyły pracę? NIE?
-                        pp.PartialProblemStatus = s.Type == SolutionTypes.Partial ? 
+                        pp.PartialProblemStatus = s.Type == CommunicationXML.SolutionType.Partial ? 
                             PartialProblemStatuses.Solved : pp.PartialProblemStatus;
 
                         pp.ComputationsTime = s.ComputationsTime;
                         pp.TimeoutOccured = s.TimeoutOccured;
 
-                        if (s.Type == SolutionTypes.Partial && !s.TimeoutOccured)
+                        if (s.Type == CommunicationXML.SolutionType.Partial && !s.TimeoutOccured)
                             pp.Data = s.Data;
                     }
                 }
@@ -105,10 +113,14 @@ namespace Components
                         Status = ProblemStatus.PartiallySolved;
                 }
             }
-        }*/
+        }
 
-        /* FOR: Albert :: trzeba to XMLPartialProblem jakos ladnie nazwac bo koliduje z moim. Albo zmienic nazwe mojego :P
-        public void SetPartialProblems(string commonData, List<XMLPartialProblem> partialProblems)
+        /// <summary>
+        /// Dodaje odebrane Partial Problems
+        /// </summary>
+        /// <param name="commonData">Common Data</param>
+        /// <param name="partialProblems">Podzielone fragmenty problemow</param>
+        public void SetPartialProblems(byte[] commonData, List<CommunicationXML.PartialProblem> partialProblems)
         {
             CommonData = commonData;
             PartialProblems = new List<PartialProblem>();
@@ -117,12 +129,16 @@ namespace Components
                 PartialProblems.Add(new PartialProblem(x.TaskId, x.Data));
 
             Status = ProblemStatus.Divided;
-        }*/
+        }
 
-        /* FOR: Albert :: klasy do wygenerowania i ewentualnie zmien prosze nazwy bo jest kolizja a nie wiem jak zrobic zeby bylo ladnie :)
-        public List<XMLPartialProblem> GetPartialProblemListToSolve(long maxCount) // maxCount - liczba wątków CN
+        /// <summary>
+        /// Tworzy listę podproblemów do rozwiązania dla CN.
+        /// </summary>
+        /// <param name="maxCount">Dostepna liczba wątków - max liczba podproblemów do odesłania</param>
+        /// <returns>Lista problemów</returns>
+        public List<CommunicationXML.PartialProblem> GetPartialProblemListToSolve(long maxCount)
         {
-            List<XMLPartialProblem> problems = new List<XMLPartialProblem>();
+            List<CommunicationXML.PartialProblem> problems = new List<CommunicationXML.PartialProblem>();
 
             for (int i = 0; i < maxCount; ++i)
             {
@@ -131,7 +147,7 @@ namespace Components
                 if (pp == null)
                     break;
 
-                problems.Add(new XMLPartialProblem(pp.TaskId, pp.Data));
+                problems.Add(new CommunicationXML.PartialProblem(pp.TaskId, pp.Data));
 
                 pp.PartialProblemStatus = PartialProblemStatuses.Sended;
             }
@@ -140,6 +156,6 @@ namespace Components
                 Status = ProblemStatus.WaitingForPartialSolutions;
 
             return problems;
-        }*/
+        }
     }
 }
