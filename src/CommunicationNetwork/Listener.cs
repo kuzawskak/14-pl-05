@@ -126,6 +126,12 @@ namespace CommunicationNetwork
             // whole packet
             byte[] data = new byte[ps];
 
+            // copy data
+            int i = 0;
+            foreach (byte[] b in lb)
+                foreach (byte _b in b)
+                    data[i] = _b;
+
             // !!! CALL SERVER CONTEXT !!!
             ConnectionContext cc = new ConnectionContext(Thread.CurrentThread);
             if (ch != null)
