@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Components
 {
-    public class ComputationalNode : Node
+    class ComputationalNode : Node
     {
         public ComputationalNode(List<string> solvableProblems, byte parallelThreads)
             : base(solvableProblems, parallelThreads)

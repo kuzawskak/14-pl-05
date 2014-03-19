@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Components
 {
-    enum PartialProblemStatuses
+    public enum PartialProblemStatuses
     {
         New,
         Sended, // ongoing

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Components
 {
-    public class TaskManager : Node
+    class TaskManager : Node
     {
         public TaskManager(List<string> solvableProblems, byte parallelThreads)
             : base(solvableProblems, parallelThreads)
