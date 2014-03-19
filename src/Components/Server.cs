@@ -169,6 +169,55 @@ namespace Components
         }
 
         /// <summary>
+        /// Wycofywanie zgubionych danych. (Jeśli istaniją.)
+        /// </summary>
+        /// <param name="tempProblems">Problemy wysłane do TM/CN zapisane tymczasowow, które nie zostały zaktualizowne.</param>
+        private void UpdateTemporaryProblems(List<Tuple<ulong, List<ulong>>> tempProblems)
+        {
+            foreach (var t in tempProblems)
+            {
+                Problem p = problems.Find(x => x.Id == t.Item1);
+
+                if (p != null)
+                {
+                    switch (p.Status)
+                    {
+                        case ProblemStatus.WaitingForDivision:
+                            p.Status = ProblemStatus.New;
+                            break;
+
+                        case ProblemStatus.Divided:
+                            goto case ProblemStatus.WaitingForPartialSolutions;
+
+                        case ProblemStatus.WaitingForPartialSolutions:
+                            if (t.Item2 != null)
+                            {
+                                foreach (var ps in t.Item2)
+                                {
+                                    PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == ps);
+
+                                    if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended)
+                                        pp.PartialProblemStatus = PartialProblemStatuses.New;
+                                }
+
+                                p.Status = p.PartialProblems.Where(
+                                    x => x.PartialProblemStatus == PartialProblemStatuses.New).Count() == 0 ?
+                                    ProblemStatus.WaitingForPartialSolutions : ProblemStatus.Divided;
+                            }
+                            break;
+
+                        case ProblemStatus.WaitingForSolutions:
+                            p.Status = ProblemStatus.PartiallySolved;
+                            break;
+                    }                    
+                }
+            }
+
+            // Czyszczenie listy.
+            tempProblems.RemoveAll(x => true);
+        }
+
+        /// <summary>
         /// Aktualizuje informację o TM i CN. Sprawdza czy jest dla nich nowe zadanie i jeśli znajdzie, odsyła.
         /// </summary>
         /// <param name="obj"></param>
@@ -187,6 +236,7 @@ namespace Components
                 if (node != null)
                 {
                     node.Update(status.Threads);
+                    UpdateTemporaryProblems(node.TemporaryProblems);
 
                     if (node.GetAvailableThreads() > 0)
                     {
@@ -199,6 +249,7 @@ namespace Components
                                 partialP.Status = ProblemStatus.WaitingForSolutions;
 
                                 List<Solution> solutions = new List<Solution>();
+                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(partialP.Id, null));
 
                                 foreach (var pp in partialP.PartialProblems)
                                 {
@@ -214,6 +265,7 @@ namespace Components
                             if (newP != null)
                             {
                                 newP.Status = ProblemStatus.WaitingForDivision;
+                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(newP.Id, null));
                                 ulong computationalNodesCount = (ulong)computationalNodes.Sum(t => t.GetAvailableThreads());
                                 response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
                                 return response;
@@ -225,10 +277,21 @@ namespace Components
 
                             if (dividedP != null)
                             {
+                                List<CommunicationXML.PartialProblem> pp = 
+                                    dividedP.GetPartialProblemListToSolve(node.GetAvailableThreads());
+
                                 response =
                                     new SolvePartialProblems(dividedP.ProblemType, dividedP.Id,
-                                        dividedP.CommonData, dividedP.SolvingTimeout,
-                                        dividedP.GetPartialProblemListToSolve(node.GetAvailableThreads()));
+                                        dividedP.CommonData, dividedP.SolvingTimeout, pp);
+
+                                List<ulong> ppnums = new List<ulong>();
+
+                                foreach(var x in pp)
+                                {
+                                    ppnums.Add(x.TaskId);
+                                }
+
+                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(dividedP.Id, ppnums));
 
                                 return response;
                             }
@@ -271,6 +334,8 @@ namespace Components
 
                 lock (lockObj)
                 {
+                    // TODO: Jeżeli wyślemy XML z zadaniem np do CN i on go zignoruje albo np się rozłączy to nigdy się o tym nie dowiemy! NAPRAWIĆ!
+                    // TODO: Usunięcie Solution po wysłaniu do CC
                     // TODO: jeśli dany CN i TM coś obliczał to zmienić (cofnąć) status zadania.
                     // TODO: w przypadku CN trzeba wycofać odpowiedni podzbiór zadań!!!
                     // Jeśli TM nie odpowiada (dzielenie zadania) to zmienic status z WaitingForDivision! na New
