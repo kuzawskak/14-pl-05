@@ -3,14 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CommunicationXML
 {
+    /// <summary>
+    /// Klasa reprezentuje obiekty wiadomości typu DivideProblemMessage
+    /// </summary>
+    [XmlRoot(Namespace=ADRES)]
     public class DivideProblem : MessageObject
     {
         /// <summary>
         /// Nazwa typu problemu
         /// </summary>
+        [XmlElement]
         public String ProblemType
         {
             get { return problemType; }
@@ -21,6 +27,7 @@ namespace CommunicationXML
         /// <summary>
         /// Id instancji problemu nadane przez serwer
         /// </summary>
+        [XmlElement]
         public UInt64 Id
         {
             get { return id; }
@@ -31,16 +38,24 @@ namespace CommunicationXML
         /// <summary>
         /// Dane problemu
         /// </summary>
+        [XmlElement]
         public byte[] Data
         {
             get { return data; }
-            set { data = value; }
+            set
+            {
+                if (value == null)
+                    throw new InvalidOperationException("data can not be null");
+
+                data = value; 
+            }
         }
         private byte[] data;
 
         /// <summary>
         /// Liczba dostępnych w danej chwili wątków
         /// </summary>
+        [XmlElement]
         public UInt64 ComputationalNodes
         {
             get { return computationalNodes; }
@@ -55,7 +70,7 @@ namespace CommunicationXML
         /// <param name="_id">Id problemu nadane przez serwer</param>
         /// <param name="_data">Dane problemu</param>
         /// <param name="_computationalNodes">Liczba dostępnych wątków</param>
-        public DivideProblem(string _problemType, UInt64 _id, byte [] _data, UInt64 _computationalNodes)
+        public DivideProblem(string _problemType, UInt64 _id, byte [] _data, UInt64 _computationalNodes) : base()
         {
             if (_data == null)
                 throw new System.ArgumentNullException();
@@ -66,9 +81,23 @@ namespace CommunicationXML
             computationalNodes = _computationalNodes;
         }
 
+        /// <summary>
+        /// Konstruktor bezparamentrowy na potrzeby serializacji
+        /// </summary>
+        public DivideProblem() : base()
+        {
+            problemType = "";
+            id = computationalNodes = 0;
+            data = new byte[0];
+        }
+
         public override byte[] GetXmlData()
         {
-            throw new NotImplementedException();
+            if (data == null)
+                throw new InvalidOperationException("data can not be null");
+
+            XmlMessageSerializer serilizer = new XmlMessageSerializer();
+            return serilizer.SerilizeMessageObject(this, typeof(DivideProblem));
         }
     }
 }

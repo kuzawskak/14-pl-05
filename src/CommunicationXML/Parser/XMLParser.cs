@@ -43,6 +43,41 @@ namespace CommunicationXML
                 return;
             }
 
+            if(null != (result = TryDeserilize(typeof(DivideProblem))))
+            {
+                messageType = MessageTypes.DivideProblem;
+                message = (DivideProblem)result;
+                return;
+            }
+
+            if(null != (result = TryDeserilize(typeof(SolveRequestResponse))))
+            {
+                messageType = MessageTypes.SolveRequestResponse;
+                message = (SolveRequestResponse)result;
+                return;
+            }
+
+            if(null != (result = TryDeserilize(typeof(SolveRequest))))
+            {
+                messageType = MessageTypes.SolveRequest;
+                message = (SolveRequest)result;
+                return;
+            }
+
+            if(null != (result = TryDeserilize(typeof(SolvePartialProblems))))
+            {
+                messageType = MessageTypes.SolvePartialProblems;
+                message = (SolvePartialProblems)result;
+                return;
+            }
+
+            if(null != (result = TryDeserilize(typeof(Status))))
+            {
+                messageType = MessageTypes.Status;
+                message = (Status)result;
+                return;
+            }
+
             throw new ArgumentException("data can not be deserialized");
         }
 

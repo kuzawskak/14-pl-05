@@ -29,7 +29,7 @@ namespace CommunicationXML
     public abstract class MessageObject
     {
         private const string UCC = "ucc";
-        protected const string ADRES = "http://www.mini.pw.edu.pl/ucc/";
+        public const string ADRES = "http://www.mini.pw.edu.pl/ucc/";
 
         /// <summary>
         /// Zwraca zawartość obiektu jako XML w formacie binarnym - gotowy do wysłania

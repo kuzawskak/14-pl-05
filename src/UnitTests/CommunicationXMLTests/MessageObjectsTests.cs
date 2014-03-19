@@ -82,7 +82,7 @@ namespace UnitTests.CommunicationXMLTests
             Status status;
 
             //Act
-            status = new Status(1);
+            status = new Status();
 
             //Assret
             Assert.IsNotNull(status);

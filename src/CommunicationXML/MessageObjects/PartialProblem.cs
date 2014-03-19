@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CommunicationXML
 {
     /// <summary>
     /// Klasa reprezentuje problem częściowy w wiadomościach
     /// </summary>
+    [XmlRoot(Namespace=MessageObject.ADRES)]
     public class PartialProblem
     {
         /// <summary>
         /// Id podproblemu nadane przez Task Solver
         /// </summary>
+        [XmlElement]
         public UInt64 TaskId
         {
             get { return taskId; }
@@ -24,6 +27,7 @@ namespace CommunicationXML
         /// <summary>
         /// Dane podproblemu
         /// </summary>
+        [XmlElement]
         public byte[] Data
         {
             get { return data; }
@@ -43,6 +47,15 @@ namespace CommunicationXML
 
             taskId = _taskId;
             data = _data;
+        }
+
+        /// <summary>
+        /// Konstruktor bezparametrowy na potrzeby serializacji
+        /// </summary>
+        public PartialProblem()
+        {
+            taskId = 0;
+            data = new byte[0];
         }
     }
 }

@@ -114,7 +114,6 @@ namespace CommunicationXML
                 throw new System.InvalidOperationException("Solvable problems cannot be empty");
 
             XmlMessageSerializer serializer = new XmlMessageSerializer();
-
             return serializer.SerilizeMessageObject(this, typeof(Register));
         }
     }
