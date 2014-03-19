@@ -27,7 +27,7 @@ namespace CommunicationXML
         /// Timeout serwera
         /// </summary>
         [XmlElement(DataType="time")]
-        public DateTime Timeout
+		public DateTime Timeout
         {
             get { return timeout; }
             set { timeout = value; }
@@ -39,14 +39,15 @@ namespace CommunicationXML
         /// </summary>
         /// <param name="id">Id komponentu, który nadał Server</param>
         /// <param name="timeout">Timeout serwera</param>
-        public RegisterResponse(UInt64 _id, DateTime _timeout) : base()
+        public RegisterResponse(UInt64 _id, TimeSpan _timeout)
+            : base()
         {
             //Sprawdzenie poprawności parametrów
             if (_timeout == null)
                 throw new System.ArgumentNullException();
 
             id = _id;
-            timeout = _timeout;
+            timeout = Convert.ToDateTime(_timeout.ToString());
         }
 
         /// <summary>
@@ -54,19 +55,15 @@ namespace CommunicationXML
         /// </summary>
         public RegisterResponse() : base()
         {
-            timeout = DateTime.Now;
+            timeout = new DateTime();
             id = 0;
         }
 
 
         public override byte[] GetXmlData()
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(RegisterResponse));
-            StringBuilder sb = new StringBuilder();
-            StringWriter stringWriter = new StringWriter(sb);
-            serializer.Serialize(stringWriter, this);
-
-            return StringToBytesConverter.GetBytes(sb.ToString());
+            XmlMessageSerializer serializer = new XmlMessageSerializer();
+            return serializer.SerilizeMessageObject(this, typeof(RegisterResponse));
         }
     }
 }

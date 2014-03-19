@@ -10,10 +10,27 @@ namespace UnitTests.CommunicationXMLTests
     public class ObjectToXmlTests
     {
         [TestMethod]
+        public void StringToByteConverterTest()
+        {
+            //Arrange
+            string line = "some random <string>with simple </string> pseudo xml parts";
+            string result;
+            byte[] data;
+
+            //Act
+            data = StringToBytesConverter.GetBytes(line);
+            result = StringToBytesConverter.GetString(data);
+
+            //Assert
+            Assert.IsTrue(line.Equals(result));
+            
+        }
+
+        [TestMethod]
         public void RegisterResponseToXmlTest()
         {
             //Arrange
-            RegisterResponse rr = new RegisterResponse(0, DateTime.Now);
+            RegisterResponse rr = new RegisterResponse(0, new TimeSpan(0));
 
             //Act
             byte[] data = rr.GetXmlData();
@@ -32,6 +49,21 @@ namespace UnitTests.CommunicationXMLTests
 
             //Act
             byte[] data = r.GetXmlData();
+
+            //Assert
+            Assert.IsNotNull(data);
+
+            Debug.WriteLine(StringToBytesConverter.GetString(data));
+        }
+
+        [TestMethod]
+        public void SolutionRequestToXmlTest()
+        {
+            //Arrange
+            SolutionRequest sr = new SolutionRequest(123);
+
+            //Act
+            byte[] data = sr.GetXmlData();
 
             //Assert
             Assert.IsNotNull(data);

@@ -54,6 +54,7 @@
     <Compile Include="CommunicationServer\ServerTests.cs" />
     <Compile Include="CommunicationXMLTests\MessageObjectsTests.cs" />
     <Compile Include="CommunicationXMLTests\ObjectToXmlTests.cs" />
+    <Compile Include="CommunicationXMLTests\XmlParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

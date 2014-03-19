@@ -28,7 +28,7 @@ namespace UnitTests.CommunicationXMLTests
             RegisterResponse registerResponse;
 
             //Act
-            registerResponse = new RegisterResponse((ulong)0, new DateTime());
+            registerResponse = new RegisterResponse((ulong)0, new TimeSpan());
 
             //Assert
             Assert.IsNotNull(registerResponse);
@@ -180,7 +180,7 @@ namespace UnitTests.CommunicationXMLTests
         }
 
         [TestMethod]
-        public void SolvePartialProblemsCOnstructorTest()
+        public void SolvePartialProblemsConstructorTest()
         {
             //Arrange
             byte[] data = new byte[0];
