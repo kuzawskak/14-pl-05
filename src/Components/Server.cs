@@ -43,7 +43,7 @@ namespace Components
         /// </summary>
         public void Stop()
         {
-            // TODO: Zamienic to na ustawienie flagi?
+            // TODO: Zamienic to na ustawienie flagi
             Environment.Exit(0);
         }
 

@@ -29,7 +29,8 @@ namespace CommunicationNetwork
             {
                 if (is_running)
                     throw new Exception("Listener is already listening on port: " + port);
-                tcp = new TcpListener(IPAddress.Parse(LocalIPAddress()), port);
+                IPAddress ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
+                tcp = new TcpListener(ipAddress, port);
                 tcp.Start();
                 is_running = true;
 
@@ -130,7 +131,7 @@ namespace CommunicationNetwork
             int i = 0;
             foreach (byte[] b in lb)
                 foreach (byte _b in b)
-                    data[i] = _b;
+                    data[i++] = _b;
 
             // !!! CALL SERVER CONTEXT !!!
             ConnectionContext cc = new ConnectionContext(Thread.CurrentThread);
@@ -140,7 +141,7 @@ namespace CommunicationNetwork
                 // ***********************
                 // waiting for event
                 // ***********************
-                Thread.Sleep(Timeout.Infinite);
+                //Thread.Sleep(Timeout.Infinite);
             }
 
             // interrupting by send method
@@ -148,8 +149,8 @@ namespace CommunicationNetwork
             // test purposes
             data = cc.GetMessage();
             if (data == null)
-                data = System.Text.Encoding.ASCII.GetBytes("invalid input");
-            ns.Write(data, 0, data.Length);
+                //data = System.Text.Encoding.ASCII.GetBytes("invalid input");
+                ns.Write(data, 0, data.Length);
             _cli.Close();
         }
 
