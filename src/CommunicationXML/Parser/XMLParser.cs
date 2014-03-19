@@ -36,6 +36,13 @@ namespace CommunicationXML
                 return;
             }
 
+            if(null != (result = TryDeserilize(typeof(SolutionRequest))))
+            {
+                messageType = MessageTypes.SolutionRequest;
+                message = (SolutionRequest)result;
+                return;
+            }
+
             throw new ArgumentException("data can not be deserialized");
         }
 

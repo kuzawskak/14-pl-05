@@ -45,6 +45,23 @@ namespace UnitTests.CommunicationXMLTests
             Assert.AreEqual(registerResponse.Timeout.Hour, result.Timeout.Hour);
             Assert.AreEqual(registerResponse.Timeout.Minute, result.Timeout.Minute);
             Assert.AreEqual(registerResponse.Timeout.Second, result.Timeout.Second);
+            Assert.AreEqual(registerResponse.Timeout.Millisecond, result.Timeout.Millisecond);
+        }
+
+        [TestMethod]
+        public void SolutionRequestParseTest()
+        {
+            //Arrange
+            SolutionRequest sr = new SolutionRequest(123);
+            byte[] data = sr.GetXmlData();
+
+            //Act
+            XMLParser parser = new XMLParser(data);
+
+            //Assert
+            Assert.IsNotNull(parser);
+            Assert.AreEqual(MessageTypes.SolutionRequest, parser.MessageType);
+            Assert.AreEqual(sr.Id, ((SolutionRequest)parser.Message).Id);
         }
     }
 }
