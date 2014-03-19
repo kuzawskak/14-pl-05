@@ -54,7 +54,7 @@
     <Compile Include="MessageObjects\SolveRequest.cs" />
     <Compile Include="MessageObjects\SolveRequestResponse.cs" />
     <Compile Include="MessageObjects\Status.cs" />
-    <Compile Include="MessageObjects\Thread.cs" />
+    <Compile Include="MessageObjects\ComputationalThread.cs" />
     <Compile Include="Parser\XMLParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
