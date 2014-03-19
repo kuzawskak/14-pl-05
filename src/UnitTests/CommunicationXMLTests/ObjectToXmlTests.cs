@@ -10,6 +10,23 @@ namespace UnitTests.CommunicationXMLTests
     public class ObjectToXmlTests
     {
         [TestMethod]
+        public void StringToByteConverterTest()
+        {
+            //Arrange
+            string line = "some random <string>with simple </string> pseudo xml parts";
+            string result;
+            byte[] data;
+
+            //Act
+            data = StringToBytesConverter.GetBytes(line);
+            result = StringToBytesConverter.GetString(data);
+
+            //Assert
+            Assert.IsTrue(line.Equals(result));
+            
+        }
+
+        [TestMethod]
         public void RegisterResponseToXmlTest()
         {
             //Arrange
