@@ -195,5 +195,37 @@ namespace UnitTests.CommunicationXMLTests
             Assert.AreEqual(t.State, rt.State);
             Assert.AreEqual(t.TaskId, rt.TaskId);
         }
+
+        [TestMethod]
+        public void SolutionsParseTest()
+        {
+            //Arrange
+            Solutions s = new Solutions("name", 123, new byte[] { 1, 3, 5 }, new Solution[] {
+            new Solution(null, false, SolutionType.Ongoing, 100, new byte[]{ 1, 2}),
+            new Solution(123, true, SolutionType.Partial, 400, new byte[]{ 3, 5, 7, 8})
+            });
+
+            byte[] data = s.GetXmlData();
+
+            //Act
+            XMLParser parser = new XMLParser(data);
+
+            //Assert
+            Assert.IsNotNull(parser);
+            Assert.AreEqual(MessageTypes.Solutions, parser.MessageType);
+            Solutions rs = (Solutions)parser.Message;
+            Assert.AreEqual(s.CommonData.Length, rs.CommonData.Length);
+            Assert.AreEqual(s.Id, rs.Id);
+            Assert.AreEqual(s.ProblemType, rs.ProblemType);
+            Assert.AreEqual(s.SolutionsList.Count, rs.SolutionsList.Count);
+            Solution sol = s.SolutionsList[0];
+            Solution rsol = rs.SolutionsList[0];
+            Assert.AreEqual(sol.ComputationsTime, rsol.ComputationsTime);
+            Assert.AreEqual(sol.Data.Length, rsol.Data.Length);
+            Assert.AreEqual(sol.TaskId, rsol.TaskId);
+            Assert.AreEqual(sol.TimeoutOccured, rsol.TimeoutOccured);
+            Assert.AreEqual(sol.Type, rsol.Type);
+            
+        }
     }
 }
