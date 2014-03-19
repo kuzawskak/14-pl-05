@@ -111,6 +111,15 @@ namespace CommunicationNetwork
             List<byte[]> lb = new List<byte[]>();
             //string packet = "";
             int read_bytes;
+            do {
+                read_bytes = ns.Read(bytes, 0, pack_len);
+                Console.WriteLine("received: " + read_bytes);
+                // add to list of partial read packet
+                lb.Add(((byte[])bytes.Clone()));
+            }
+            while (ns.DataAvailable);
+
+            /*
             while ((read_bytes = ns.Read(bytes, 0, pack_len)) != 0)
             {
                 Console.WriteLine("received: " + read_bytes);
@@ -118,7 +127,7 @@ namespace CommunicationNetwork
                 // add to list of partial read packet
                 lb.Add(((byte[])bytes.Clone()));
             }
-
+            */
             // put all data in one byte array
             uint ps = 0;
             foreach (byte[] b in lb)
