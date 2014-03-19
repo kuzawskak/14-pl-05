@@ -25,6 +25,7 @@ namespace Components
             listener = new Listener(port, ConnectionHandler);
             computationalNodes = new List<ComputationalNode>();
             taskManagers = new List<TaskManager>();
+            problems = new List<Problem>();
             lockObj = new object();
         }
 
@@ -120,6 +121,9 @@ namespace Components
                     }
 
                     response = new Solutions(p.ProblemType, p.Id, p.CommonData, solutions);
+
+                    // Usuwanie wysłanego problemu z listy.
+                    problems.Remove(p);
                 }
             }
 
@@ -134,7 +138,6 @@ namespace Components
         {
             Solutions solutions = obj as Solutions;
 
-            // TODO: Aktualizować wątki CN/TM? (NIE?)
             // TODO: Aktualizować ostatni czas połączenia?
             lock (lockObj)
             {
@@ -172,31 +175,33 @@ namespace Components
         /// Wycofywanie zgubionych danych. (Jeśli istaniją.)
         /// </summary>
         /// <param name="tempProblems">Problemy wysłane do TM/CN zapisane tymczasowow, które nie zostały zaktualizowne.</param>
-        private void UpdateTemporaryProblems(List<Tuple<ulong, List<ulong>>> tempProblems)
+        private void UpdateTemporaryProblems(List<TempProblem> tempProblems)
         {
             foreach (var t in tempProblems)
             {
-                Problem p = problems.Find(x => x.Id == t.Item1);
+                Problem p = problems.Find(x => x.Id == t.ProblemId);
 
                 if (p != null)
                 {
                     switch (p.Status)
                     {
                         case ProblemStatus.WaitingForDivision:
-                            p.Status = ProblemStatus.New;
+                            if(t.Status == ProblemStatus.WaitingForDivision)
+                                p.Status = ProblemStatus.New;
                             break;
 
                         case ProblemStatus.Divided:
                             goto case ProblemStatus.WaitingForPartialSolutions;
 
                         case ProblemStatus.WaitingForPartialSolutions:
-                            if (t.Item2 != null)
+                            if (t.PartialProblems != null && (t.Status == ProblemStatus.WaitingForPartialSolutions || t.Status == ProblemStatus.Divided))
                             {
-                                foreach (var ps in t.Item2)
+                                foreach (var ps in t.PartialProblems)
                                 {
-                                    PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == ps);
+                                    PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == ps.PartialId);
 
-                                    if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended)
+                                    if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended && 
+                                        ps.PartialStatus == PartialProblemStatuses.Sended)
                                         pp.PartialProblemStatus = PartialProblemStatuses.New;
                                 }
 
@@ -207,7 +212,8 @@ namespace Components
                             break;
 
                         case ProblemStatus.WaitingForSolutions:
-                            p.Status = ProblemStatus.PartiallySolved;
+                            if(t.Status == ProblemStatus.WaitingForSolutions)
+                                p.Status = ProblemStatus.PartiallySolved;
                             break;
                     }                    
                 }
@@ -249,7 +255,7 @@ namespace Components
                                 partialP.Status = ProblemStatus.WaitingForSolutions;
 
                                 List<Solution> solutions = new List<Solution>();
-                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(partialP.Id, null));
+                                node.TemporaryProblems.Add(new TempProblem(partialP.Id, ProblemStatus.WaitingForSolutions, null));
 
                                 foreach (var pp in partialP.PartialProblems)
                                 {
@@ -265,7 +271,7 @@ namespace Components
                             if (newP != null)
                             {
                                 newP.Status = ProblemStatus.WaitingForDivision;
-                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(newP.Id, null));
+                                node.TemporaryProblems.Add(new TempProblem(newP.Id, ProblemStatus.WaitingForDivision, null));
                                 ulong computationalNodesCount = (ulong)computationalNodes.Sum(t => t.GetAvailableThreads());
                                 response = new DivideProblem(newP.ProblemType, newP.Id, newP.Data, computationalNodesCount);
                                 return response;
@@ -284,14 +290,14 @@ namespace Components
                                     new SolvePartialProblems(dividedP.ProblemType, dividedP.Id,
                                         dividedP.CommonData, dividedP.SolvingTimeout, pp);
 
-                                List<ulong> ppnums = new List<ulong>();
+                                List<TempPartial> ppnums = new List<TempPartial>();
 
                                 foreach(var x in pp)
                                 {
-                                    ppnums.Add(x.TaskId);
+                                    ppnums.Add(new TempPartial(x.TaskId, PartialProblemStatuses.Sended));
                                 }
 
-                                node.TemporaryProblems.Add(new Tuple<ulong, List<ulong>>(dividedP.Id, ppnums));
+                                node.TemporaryProblems.Add(new TempProblem(dividedP.Id, dividedP.Status, ppnums));
 
                                 return response;
                             }
@@ -324,7 +330,50 @@ namespace Components
         }
 
         /// <summary>
-        /// Usuwanie nieaktywnych CN i TM
+        /// Anuluje Status zadania jeśli CN/TM nie odpowiada.
+        /// </summary>
+        /// <param name="t">Wątek CN/TM rozwiązujący zadanie</param>
+        private void UpdateProblems(ComputationalThread t)
+        {
+            if (t.ProblemInstanceId != null)
+            {
+                Problem p = problems.Find(x => x.Id == t.ProblemInstanceId);
+
+                if (p != null)
+                {
+                    switch (p.Status)
+                    {
+                        case ProblemStatus.WaitingForDivision:
+                            p.Status = ProblemStatus.New;
+                            break;
+
+                        case ProblemStatus.Divided:
+                            goto case ProblemStatus.WaitingForPartialSolutions;
+
+                        case ProblemStatus.WaitingForPartialSolutions:
+                            if (p.PartialProblems != null)
+                            {
+                                PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == t.TaskId);
+
+                                if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended)
+                                    pp.PartialProblemStatus = PartialProblemStatuses.New;
+
+                                p.Status = p.PartialProblems.Where(
+                                    x => x.PartialProblemStatus == PartialProblemStatuses.New).Count() == 0 ?
+                                    ProblemStatus.WaitingForPartialSolutions : ProblemStatus.Divided;
+                            }
+                            break;
+
+                        case ProblemStatus.WaitingForSolutions:
+                            p.Status = ProblemStatus.PartiallySolved;
+                            break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Usuwanie nieaktywnych CN i TM.
         /// </summary>
         private void BackgroundWork()
         {
@@ -334,13 +383,33 @@ namespace Components
 
                 lock (lockObj)
                 {
-                    // TODO: Jeżeli wyślemy XML z zadaniem np do CN i on go zignoruje albo np się rozłączy to nigdy się o tym nie dowiemy! NAPRAWIĆ!
+                    var cnl = computationalNodes.Where(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
+                    var tml = taskManagers.Where(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
+
+                    foreach (var cn in cnl)
+                    {
+                        // Wycofanie zmian w przypadku informacji w Temp
+                        if (cn.TemporaryProblems.Count != 0)
+                            UpdateTemporaryProblems(cn.TemporaryProblems);
+
+                        // Wycofanie zmian w przypadku informacji w Node.Threads
+                        foreach (var t in cn.Threads)
+                            UpdateProblems(t);
+                    }
+
+                    foreach (var tm in tml)
+                    {
+                        // Wycofanie zmian w przypadku informacji w Temp
+                        if (tm.TemporaryProblems.Count != 0)
+                            UpdateTemporaryProblems(tm.TemporaryProblems);
+
+                        // Wycofanie zmian w przypadku informacji w Node.Threads
+                        foreach (var t in tm.Threads)
+                            UpdateProblems(t);
+                    }
+
                     // TODO: Usunięcie Solution po wysłaniu do CC
-                    // TODO: jeśli dany CN i TM coś obliczał to zmienić (cofnąć) status zadania.
-                    // TODO: w przypadku CN trzeba wycofać odpowiedni podzbiór zadań!!!
-                    // Jeśli TM nie odpowiada (dzielenie zadania) to zmienic status z WaitingForDivision! na New
-                    // Jeśli CN nie odpowiada to zmienić status partial problems z Sended! na New i problemu z WaitingForPartialSolution! na Divided (jeśli trzeba)
-                    // Jeśli TM nie odpowiada (łączenie rozwiązania) to zmiana statusu z WaitingForSolution! na PartiallySolved
+                    
                     computationalNodes.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                     taskManagers.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }
