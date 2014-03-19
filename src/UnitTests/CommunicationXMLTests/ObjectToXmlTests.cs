@@ -55,5 +55,20 @@ namespace UnitTests.CommunicationXMLTests
 
             Debug.WriteLine(StringToBytesConverter.GetString(data));
         }
+
+        [TestMethod]
+        public void SolutionRequestToXmlTest()
+        {
+            //Arrange
+            SolutionRequest sr = new SolutionRequest(123);
+
+            //Act
+            byte[] data = sr.GetXmlData();
+
+            //Assert
+            Assert.IsNotNull(data);
+
+            Debug.WriteLine(StringToBytesConverter.GetString(data));
+        }
     }
 }

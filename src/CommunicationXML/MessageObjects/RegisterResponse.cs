@@ -62,12 +62,8 @@ namespace CommunicationXML
 
         public override byte[] GetXmlData()
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(RegisterResponse));
-            StringBuilder sb = new StringBuilder();
-            StringWriter stringWriter = new StringWriter(sb);
-            serializer.Serialize(stringWriter, this);
-
-            return StringToBytesConverter.GetBytes(sb.ToString());
+            XmlMessageSerializer serializer = new XmlMessageSerializer();
+            return serializer.SerilizeMessageObject(this, typeof(RegisterResponse));
         }
     }
 }

@@ -101,7 +101,7 @@ namespace CommunicationXML
         /// <summary>
         /// Bezparametrowy konstruktor na potrzeby serializacji Xml
         /// </summary>
-        public Register()
+        public Register() : base()
         {
             type = 0;
             parallelThreads = 0;
@@ -113,18 +113,9 @@ namespace CommunicationXML
             if (solvableProblems.Count == 0)
                 throw new System.InvalidOperationException("Solvable problems cannot be empty");
 
-            XmlSerializer serializer = new XmlSerializer(typeof(Register));
-            StringBuilder sb = new StringBuilder();
-            StringWriter stringWriter = new StringWriter(sb);
-            serializer.Serialize(stringWriter, this);
+            XmlMessageSerializer serializer = new XmlMessageSerializer();
 
-            //Testowa deserializacja
-            //using(TextReader reader = new StringReader(sb.ToString()))
-            //{
-            //    Register r = (Register)serializer.Deserialize(reader);
-            //}
-
-            return StringToBytesConverter.GetBytes(sb.ToString());
+            return serializer.SerilizeMessageObject(this, typeof(Register));
         }
     }
 
