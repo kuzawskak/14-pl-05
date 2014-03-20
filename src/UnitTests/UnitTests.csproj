@@ -51,6 +51,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CommunicationNetwork\ListenerTests.cs" />
+    <Compile Include="CommunicationServer\NodeTests.cs" />
+    <Compile Include="CommunicationServer\ProblemTests.cs" />
     <Compile Include="CommunicationServer\ServerTests.cs" />
     <Compile Include="CommunicationXMLTests\MessageObjectsTests.cs" />
     <Compile Include="CommunicationXMLTests\ObjectToXmlTests.cs" />

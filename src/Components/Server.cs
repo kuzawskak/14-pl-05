@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Components
 {
@@ -18,6 +19,9 @@ namespace Components
         private List<Problem> problems;
         private object lockObj;
 
+        private volatile bool working;
+        private CancellationTokenSource backgroundToken;
+
         private MessagePrinter debug;
 
         public Server(int port, TimeSpan timeout)
@@ -29,8 +33,9 @@ namespace Components
             taskManagers = new List<TaskManager>();
             problems = new List<Problem>();
             lockObj = new object();
+            backgroundToken = new CancellationTokenSource();
 
-            debug = new MessagePrinter();
+            debug = new MessagePrinter(NodeName.CS);
         }
 
         /// <summary>
@@ -38,7 +43,8 @@ namespace Components
         /// </summary>
         public void Start()
         {
-            Task.Factory.StartNew(BackgroundWork);
+            working = true;
+            Task.Factory.StartNew(BackgroundWork, backgroundToken.Token);
             listener.Start();
         }
 
@@ -48,6 +54,9 @@ namespace Components
         public void Stop()
         {
             // TODO: Zamienic to na ustawienie flagi
+            working = false;
+            backgroundToken.Cancel();
+            Thread.Sleep(1000);
             Environment.Exit(0);
         }
 
@@ -58,7 +67,18 @@ namespace Components
         /// <param name="ctx">Kontekst połączenia. Można wysłać przez niego odpowiedź do klienta który wysłal dane</param>
         private void ConnectionHandler(byte[] data, ConnectionContext ctx)
         {
-            XMLParser parser = new XMLParser(data);
+            XMLParser parser;
+
+            try
+            {
+                parser = new XMLParser(data);
+            }
+            catch (Exception e)
+            {
+                debug.Print("Received invalid message!");
+                ctx.Send(null);
+                return;
+            }
 
             MessageObject response = null;
 
@@ -125,7 +145,7 @@ namespace Components
                         {
                             solutions.Add(
                                 new Solution(s.TaskId, s.TimeoutOccured,
-                                    s.PartialProblemStatus == PartialProblemStatuses.Solved ?
+                                    s.PartialProblemStatus == PartialProblemStatus.Solved ?
                                     SolutionType.Partial : SolutionType.Ongoing, s.ComputationsTime, s.Data));
                         }
                     }
@@ -210,13 +230,13 @@ namespace Components
                                 {
                                     PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == ps.PartialId);
 
-                                    if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended && 
-                                        ps.PartialStatus == PartialProblemStatuses.Sended)
-                                        pp.PartialProblemStatus = PartialProblemStatuses.New;
+                                    if (pp != null && pp.PartialProblemStatus == PartialProblemStatus.Sended && 
+                                        ps.PartialStatus == PartialProblemStatus.Sended)
+                                        pp.PartialProblemStatus = PartialProblemStatus.New;
                                 }
 
                                 p.Status = p.PartialProblems.Where(
-                                    x => x.PartialProblemStatus == PartialProblemStatuses.New).Count() == 0 ?
+                                    x => x.PartialProblemStatus == PartialProblemStatus.New).Count() == 0 ?
                                     ProblemStatus.WaitingForPartialSolutions : ProblemStatus.Divided;
                             }
                             break;
@@ -258,7 +278,8 @@ namespace Components
                     {
                         if (node.GetType() == typeof(TaskManager))
                         {
-                            Problem partialP = problems.Find(t => t.Status == ProblemStatus.PartiallySolved);
+                            Problem partialP = problems.Find(t => t.Status == ProblemStatus.PartiallySolved 
+                                && node.SolvableProblems.Contains(t.ProblemType));
 
                             if (partialP != null)
                             {
@@ -276,7 +297,8 @@ namespace Components
                                 return response;
                             }
 
-                            Problem newP = problems.Find(t => t.Status == ProblemStatus.New);
+                            Problem newP = problems.Find(t => t.Status == ProblemStatus.New 
+                                && node.SolvableProblems.Contains(t.ProblemType));
 
                             if (newP != null)
                             {
@@ -289,7 +311,8 @@ namespace Components
                         }
                         else    // ComputationalNode
                         {
-                            Problem dividedP = problems.Find(t => t.Status == ProblemStatus.Divided);
+                            Problem dividedP = problems.Find(t => t.Status == ProblemStatus.Divided 
+                                && node.SolvableProblems.Contains(t.ProblemType));
 
                             if (dividedP != null)
                             {
@@ -304,7 +327,7 @@ namespace Components
 
                                 foreach(var x in pp)
                                 {
-                                    ppnums.Add(new TempPartial(x.TaskId, PartialProblemStatuses.Sended));
+                                    ppnums.Add(new TempPartial(x.TaskId, PartialProblemStatus.Sended));
                                 }
 
                                 node.TemporaryProblems.Add(new TempProblem(dividedP.Id, dividedP.Status, ppnums));
@@ -365,11 +388,11 @@ namespace Components
                             {
                                 PartialProblem pp = p.PartialProblems.Find(x => x.TaskId == t.TaskId);
 
-                                if (pp != null && pp.PartialProblemStatus == PartialProblemStatuses.Sended)
-                                    pp.PartialProblemStatus = PartialProblemStatuses.New;
+                                if (pp != null && pp.PartialProblemStatus == PartialProblemStatus.Sended)
+                                    pp.PartialProblemStatus = PartialProblemStatus.New;
 
                                 p.Status = p.PartialProblems.Where(
-                                    x => x.PartialProblemStatus == PartialProblemStatuses.New).Count() == 0 ?
+                                    x => x.PartialProblemStatus == PartialProblemStatus.New).Count() == 0 ?
                                     ProblemStatus.WaitingForPartialSolutions : ProblemStatus.Divided;
                             }
                             break;
@@ -387,9 +410,13 @@ namespace Components
         /// </summary>
         private void BackgroundWork()
         {
-            while (true)
+            while (working)
             {
-                System.Threading.Thread.Sleep(timeout);
+                if (backgroundToken.Token.WaitHandle.WaitOne(timeout))
+                {
+                    debug.Print("Background task stopped.");
+                    continue;
+                }
 
                 lock (lockObj)
                 {

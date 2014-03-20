@@ -5,18 +5,18 @@ using System.Text;
 
 namespace Components
 {
-    public enum PartialProblemStatuses
+    public enum PartialProblemStatus
     {
         New,
         Sended, // ongoing
         Solved
     }
 
-    class PartialProblem
+    public class PartialProblem
     {
         public ulong TaskId { get; private set; }
         public byte[] Data { get; set; }
-        public PartialProblemStatuses PartialProblemStatus { get; set; }
+        public PartialProblemStatus PartialProblemStatus { get; set; }
         public ulong ComputationsTime { get; set; }
         public bool TimeoutOccured { get; set; }
 
@@ -24,7 +24,7 @@ namespace Components
         {
             TaskId = taskId;
             Data = data;
-            PartialProblemStatus = PartialProblemStatuses.New;
+            PartialProblemStatus = PartialProblemStatus.New;
             ComputationsTime = 0;
             TimeoutOccured = false;
         }

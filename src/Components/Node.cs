@@ -7,19 +7,19 @@ using CommunicationXML;
 
 namespace Components
 {
-    class TempPartial
+    public class TempPartial
     {
         public ulong PartialId { get; private set; }
-        public PartialProblemStatuses PartialStatus { get; private set; }
+        public PartialProblemStatus PartialStatus { get; private set; }
 
-        public TempPartial(ulong partialId, PartialProblemStatuses partialStatus)
+        public TempPartial(ulong partialId, PartialProblemStatus partialStatus)
         {
             PartialId = partialId;
             PartialStatus = partialStatus;
         }
     }
 
-    class TempProblem
+    public class TempProblem
     {
         public ulong ProblemId { get; private set; }
         public ProblemStatus Status { get; private set; }
@@ -33,7 +33,7 @@ namespace Components
         }
     }
 
-    class Node
+    public class Node
     {
         static ulong lastId = 0;
 
@@ -51,6 +51,8 @@ namespace Components
             SolvableProblems = solvableProblems;
             ParallelThreads = parallelThreads;
             Threads = new List<ComputationalThread>();
+            for (int i = 0; i < ParallelThreads; ++i) 
+                Threads.Add(new ComputationalThread());
             TemporaryProblems = new List<TempProblem>();
 
             Update();

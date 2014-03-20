@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Components
 {
-    enum ProblemStatus
+    public enum ProblemStatus
     {
         New,
         WaitingForDivision,
@@ -16,7 +16,7 @@ namespace Components
         Solved
     }
 
-    class Problem
+    public class Problem
     {
         private static ulong lastId = 0;
 
@@ -95,7 +95,7 @@ namespace Components
                     {
                         // TODO: które wątki skończyły pracę? NIE?
                         pp.PartialProblemStatus = s.Type == CommunicationXML.SolutionType.Partial ? 
-                            PartialProblemStatuses.Solved : pp.PartialProblemStatus;
+                            PartialProblemStatus.Solved : pp.PartialProblemStatus;
 
                         pp.ComputationsTime = s.ComputationsTime;
                         pp.TimeoutOccured = s.TimeoutOccured;
@@ -106,7 +106,7 @@ namespace Components
                 }
 
                 // jesli wszystkie solved to zadanie partially solved
-                if (PartialProblems.Where(x => x.PartialProblemStatus == PartialProblemStatuses.Solved).Count() == PartialProblems.Count)
+                if (PartialProblems.Where(x => x.PartialProblemStatus == PartialProblemStatus.Solved).Count() == PartialProblems.Count)
                 {
                     // Jeśli solved to był timeout - mozna to usunac jesli timeout dla watku nie oznacza timeout dla zadania!
                     if(Status != ProblemStatus.Solved)
@@ -142,17 +142,17 @@ namespace Components
 
             for (int i = 0; i < maxCount; ++i)
             {
-                PartialProblem pp = PartialProblems.Find(x => x.PartialProblemStatus == PartialProblemStatuses.New);
+                PartialProblem pp = PartialProblems.Find(x => x.PartialProblemStatus == PartialProblemStatus.New);
 
                 if (pp == null)
                     break;
 
                 problems.Add(new CommunicationXML.PartialProblem(pp.TaskId, pp.Data));
 
-                pp.PartialProblemStatus = PartialProblemStatuses.Sended;
+                pp.PartialProblemStatus = PartialProblemStatus.Sended;
             }
 
-            if (PartialProblems.Where(x => x.PartialProblemStatus == PartialProblemStatuses.New).Count() == 0)
+            if (PartialProblems.Where(x => x.PartialProblemStatus == PartialProblemStatus.New).Count() == 0)
                 Status = ProblemStatus.WaitingForPartialSolutions;
 
             return problems;
