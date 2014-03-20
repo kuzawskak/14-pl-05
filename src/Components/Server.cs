@@ -13,7 +13,7 @@ namespace Components
     {
         private int port;
         private TimeSpan timeout;
-        private Listener listener;
+        private NetworkListener listener;
         private List<ComputationalNode> computationalNodes;
         private List<TaskManager> taskManagers;
         private List<Problem> problems;
@@ -28,7 +28,7 @@ namespace Components
         {
             this.port = port;
             this.timeout = timeout;
-            listener = new Listener(port, ConnectionHandler);
+            listener = new NetworkListener(port, ConnectionHandler);
             computationalNodes = new List<ComputationalNode>();
             taskManagers = new List<TaskManager>();
             problems = new List<Problem>();

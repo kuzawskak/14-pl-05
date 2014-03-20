@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace CommunicationNetwork
 {
-    public class Listener
+    public class NetworkListener
     {
         TcpListener tcp;
         bool is_running = false;
@@ -34,7 +34,6 @@ namespace CommunicationNetwork
                 tcp.Start();
                 is_running = true;
 
-
                 while (true)
                 {
                     // debug purpose
@@ -52,28 +51,14 @@ namespace CommunicationNetwork
             }
             catch (SocketException se)
             {
-                // start musi byc ustawiony na false
-                if (is_running)
-                    tcp.Stop();
-                is_running = false;
-                Console.WriteLine("Listener start failure on port: " + port);
-                Console.WriteLine(se.Message);
+                Stop();
+                Console.WriteLine("Server had been stopped (SocketException): " + se.Message);
 
-                // wait for all threads
-                foreach (Thread t in threads)
-                    t.Join();
             }
             catch (Exception e)
             {
-                // musi byc LogWriter, ale no, coz, mamy debug :)
-                if (is_running)
-                    tcp.Stop();
-                is_running = false;
-                Console.WriteLine(e.Message);
-
-                // wait for all threads
-                foreach (Thread t in threads)
-                    t.Join();
+                Stop();
+                Console.WriteLine("Server had been stopped (UnexpectedException): " + e.Message);
             }
         }
         /// <summary>
@@ -81,7 +66,7 @@ namespace CommunicationNetwork
         /// </summary>
         /// <param name="port"></param>
         /// <param name="handler"></param>
-        public Listener(int port, ConnectionHandler handler)
+        public NetworkListener(int port, ConnectionHandler handler)
         {
             this.port = port;
             ch = handler;
@@ -153,6 +138,18 @@ namespace CommunicationNetwork
                 //data = System.Text.Encoding.ASCII.GetBytes("invalid input");
                 ns.Write(data, 0, data.Length);
             _cli.Close();
+        }
+
+        public void Stop() {
+            if (is_running)
+                tcp.Stop();
+            is_running = false;
+
+            // kill all threads and
+            foreach (Thread t in threads)
+                t.Abort();
+            foreach (Thread t in threads)
+                t.Join();
         }
 
         /// <summary>

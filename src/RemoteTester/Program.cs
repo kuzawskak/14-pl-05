@@ -5,43 +5,41 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using CommunicationXML;
+using CommunicationNetwork;
 
 namespace RemoteTester
 {
     /// <summary>
-    /// PROGRAM TYLKO DO TESTOWANIA POŁĄCZEŃ!!!
+    /// testowanie NetworkClient
     /// </summary>
     class Program
     {
         static void Main(string[] args)
         {
-            TcpClient client = new TcpClient("localhost", 22222);
-
-            byte[] data = new Register(NodeType.ComputationalNode, 1, new List<string>() { "test1", "test2" }).GetXmlData();
-
-            NetworkStream ns = client.GetStream();
-            ns.Write(data, 0, data.Length);
-
-            //Console.WriteLine(BitConverter.ToString(data));
-
-            List<byte> bytes = new List<byte>();
-            byte[] buf = new byte[512];
-            int len = 0;
-            do
+            try
             {
-                len = ns.Read(buf, 0, 512);
+                NetworkClient nc = new NetworkClient("localhost", 22221);
+                if (nc == null)
+                {
+                    Console.WriteLine("RemoteTester: NetworkClient object equals to null");
+                    return;
+                }
 
-                for (int i = 0; i < len; ++i)
-                    bytes.Add(buf[i]);
+                byte[] data = new Register(NodeType.ComputationalNode, 1, new List<string>() { "test1", "test2" }).GetXmlData();
+
+                byte[] bytes = nc.Work(data);
+
+                if (bytes != null)
+                {
+                    XMLParser parser = new XMLParser(bytes.ToArray());
+                    Console.WriteLine((parser.Message as RegisterResponse).Id);
+                    Console.WriteLine((parser.Message as RegisterResponse).Timeout);
+                }
+                else Console.WriteLine("RemoteTester: bytes equals to null");
             }
-            while (ns.DataAvailable);
-
-            XMLParser parser = new XMLParser(bytes.ToArray());
-            Console.WriteLine((parser.Message as RegisterResponse).Id);
-            Console.WriteLine((parser.Message as RegisterResponse).Timeout);
-
-            ns.Close();
-            client.Close();
+            catch (Exception e) {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

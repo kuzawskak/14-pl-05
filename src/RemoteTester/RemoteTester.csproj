@@ -48,6 +48,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CommunicationNetwork\CommunicationNetwork.csproj">
+      <Project>{a04ccf40-b77a-4bf8-b1af-01dd7903cdec}</Project>
+      <Name>CommunicationNetwork</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CommunicationXML\CommunicationXML.csproj">
       <Project>{5f1f05bb-243f-42be-889d-af6c964771f6}</Project>
       <Name>CommunicationXML</Name>

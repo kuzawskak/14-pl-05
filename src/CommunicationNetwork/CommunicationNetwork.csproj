@@ -40,7 +40,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionContext.cs" />
-    <Compile Include="Listener.cs" />
+    <Compile Include="NetworkClient.cs" />
+    <Compile Include="NetworkListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

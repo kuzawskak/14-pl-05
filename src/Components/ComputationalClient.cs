@@ -22,7 +22,7 @@ namespace Components
 
     public class ComputationalClient
     {
-        private Listener listener;
+        private NetworkListener listener;
         private ulong ProblemId { get;  set; }
 
 
@@ -34,7 +34,7 @@ namespace Components
         public ComputationalClient(int port_number)
         {
             listener.Start();
-            listener = new Listener(port_number, ConnectionHandler);
+            listener = new NetworkListener(port_number, ConnectionHandler);
         }
 
 

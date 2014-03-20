@@ -19,7 +19,7 @@ namespace SolverComponents
 
             private List<NodeType> SolvalableProblems;
             private int ComputationalPower;
-            private Listener listener;
+            private NetworkListener listener;
             private int time;
             private ulong ComponentId;
            
@@ -28,7 +28,7 @@ namespace SolverComponents
             {
                 SolvalableProblems = solvalable_problems;
                 ComputationalPower = Environment.ProcessorCount;
-                listener = new Listener(port_number, ConnectionHandler);
+                listener = new NetworkListener(port_number, ConnectionHandler);
                 listener.Start();
             }
 
