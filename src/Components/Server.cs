@@ -18,6 +18,8 @@ namespace Components
         private List<Problem> problems;
         private object lockObj;
 
+        private MessagePrinter debug;
+
         public Server(int port, TimeSpan timeout)
         {
             this.port = port;
@@ -27,6 +29,8 @@ namespace Components
             taskManagers = new List<TaskManager>();
             problems = new List<Problem>();
             lockObj = new object();
+
+            debug = new MessagePrinter();
         }
 
         /// <summary>
@@ -61,26 +65,32 @@ namespace Components
             switch (parser.MessageType)
             {
                 case MessageTypes.Register:
+                    debug.Print("Received 'Register' message.");
                     response = RegisterNewNode(parser.Message);
                     break;
 
                 case MessageTypes.SolveRequest:
+                    debug.Print("Received 'SolveRequest' message.");
                     response = RegisterNewProblem(parser.Message);
                     break;
 
                 case MessageTypes.Status:
+                    debug.Print("Received 'Status' message.");
                     response = UpdateAndGiveData(parser.Message);
                     break;
 
                 case MessageTypes.SolutionRequest:
+                    debug.Print("Received 'SolutionRequest' message.");
                     response = SendSolution(parser.Message);
                     break;
 
                 case MessageTypes.SolvePartialProblems:
+                    debug.Print("Received 'SolvePartialProblems' message.");
                     GetDividedProblem(parser.Message);
                     break;
 
                 case MessageTypes.Solutions:
+                    debug.Print("Received 'Solutions' message.");
                     GetSolutions(parser.Message);
                     break;
             }
@@ -379,7 +389,7 @@ namespace Components
         {
             while (true)
             {
-                System.Threading.Thread.Sleep(timeout.Milliseconds);
+                System.Threading.Thread.Sleep(timeout);
 
                 lock (lockObj)
                 {
@@ -388,6 +398,7 @@ namespace Components
 
                     foreach (var cn in cnl)
                     {
+                        debug.Print("CN_" + cn.Id + " removed due to timeout.");
                         // Wycofanie zmian w przypadku informacji w Temp
                         if (cn.TemporaryProblems.Count != 0)
                             UpdateTemporaryProblems(cn.TemporaryProblems);
@@ -399,6 +410,7 @@ namespace Components
 
                     foreach (var tm in tml)
                     {
+                        debug.Print("TM_" + tm.Id + " removed due to timeout.");
                         // Wycofanie zmian w przypadku informacji w Temp
                         if (tm.TemporaryProblems.Count != 0)
                             UpdateTemporaryProblems(tm.TemporaryProblems);
@@ -407,12 +419,12 @@ namespace Components
                         foreach (var t in tm.Threads)
                             UpdateProblems(t);
                     }
-
-                    // TODO: Usunięcie Solution po wysłaniu do CC
                     
                     computationalNodes.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                     taskManagers.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }
+
+                debug.Print("Background cleanup. Nodes count: " + (computationalNodes.Count + taskManagers.Count));
             }
         }
 

@@ -15,8 +15,8 @@ namespace CommunicationNetwork
 
         public void Send(byte[] message)
         {
-            if (t != null)
-                t.Interrupt();
+            //if (t != null)
+            //    t.Interrupt();
             msg = message;
         }
 

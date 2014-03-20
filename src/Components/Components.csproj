@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ComputationalClient.cs" />
     <Compile Include="ComputationalNode.cs" />
+    <Compile Include="MessagePrinter.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="PartialProblem.cs" />
     <Compile Include="Problem.cs" />

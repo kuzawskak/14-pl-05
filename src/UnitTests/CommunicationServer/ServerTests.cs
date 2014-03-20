@@ -26,22 +26,24 @@ namespace UnitTests.CommunicationServer
             List<byte> bytes = new List<byte>();
             byte[] buf = new byte[512];
             int len = 0;
-            while ((len = ns.Read(buf, 0, 512)) != 0)
+            do
             {
+                len = ns.Read(buf, 0, 512);
+
                 for (int i = 0; i < len; ++i)
                     bytes.Add(buf[i]);
-            }
+            } while (ns.DataAvailable);
 
             XMLParser parser = new XMLParser(bytes.ToArray());
 
             ns.Close();
             c.Close();
 
-            testServ.Stop();
+            //testServ.Stop();
 
             Assert.IsNotNull(parser);
             Assert.AreEqual(parser.MessageType, MessageTypes.RegisterResponse);
-            Assert.AreEqual((parser.Message as RegisterResponse).Id, 1);
+            Assert.AreEqual((parser.Message as RegisterResponse).Id, (ulong)1);
         }
     }
 }

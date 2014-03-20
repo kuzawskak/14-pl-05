@@ -108,39 +108,31 @@ namespace CommunicationNetwork
 
             // read data from stream
             byte[] bytes = new byte[pack_len];
-            List<byte[]> lb = new List<byte[]>();
+            List<byte> lb = new List<byte>();
             //string packet = "";
             int read_bytes;
             do {
                 read_bytes = ns.Read(bytes, 0, pack_len);
                 Console.WriteLine("received: " + read_bytes);
                 // add to list of partial read packet
-                lb.Add(((byte[])bytes.Clone()));
+                lb.AddRange(bytes.Take(read_bytes).ToArray());
+                //lb.Add(((byte[])bytes.Clone()));
             }
             while (ns.DataAvailable);
 
-            /*
-            while ((read_bytes = ns.Read(bytes, 0, pack_len)) != 0)
-            {
-                Console.WriteLine("received: " + read_bytes);
-
-                // add to list of partial read packet
-                lb.Add(((byte[])bytes.Clone()));
-            }
-            */
             // put all data in one byte array
-            uint ps = 0;
-            foreach (byte[] b in lb)
-                ps += (uint)b.Length;
+            //uint ps = 0;
+            //foreach (byte[] b in lb)
+                //ps += (uint)b.Length;
 
             // whole packet
-            byte[] data = new byte[ps];
+            byte[] data = lb.ToArray();//new byte[ps];
 
             // copy data
-            int i = 0;
-            foreach (byte[] b in lb)
-                foreach (byte _b in b)
-                    data[i++] = _b;
+            //int i = 0;
+            //foreach (byte[] b in lb)
+            //    foreach (byte _b in b)
+            //        data[i++] = _b;
 
             // !!! CALL SERVER CONTEXT !!!
             ConnectionContext cc = new ConnectionContext(Thread.CurrentThread);
@@ -157,7 +149,7 @@ namespace CommunicationNetwork
             // message to send
             // test purposes
             data = cc.GetMessage();
-            if (data == null)
+            if (data != null)
                 //data = System.Text.Encoding.ASCII.GetBytes("invalid input");
                 ns.Write(data, 0, data.Length);
             _cli.Close();
@@ -167,21 +159,21 @@ namespace CommunicationNetwork
         /// Lokalny adres IP
         /// </summary>
         /// <returns></returns>
-        string LocalIPAddress()
-        {
-            IPHostEntry host;
-            string localIP = "";
-            host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (IPAddress ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    localIP = ip.ToString();
-                    break;
-                }
-            }
-            return localIP;
-        }
+        //string LocalIPAddress()
+        //{
+        //    IPHostEntry host;
+        //    string localIP = "";
+        //    host = Dns.GetHostEntry(Dns.GetHostName());
+        //    foreach (IPAddress ip in host.AddressList)
+        //    {
+        //        if (ip.AddressFamily == AddressFamily.InterNetwork)
+        //        {
+        //            localIP = ip.ToString();
+        //            break;
+        //        }
+        //    }
+        //    return localIP;
+        //}
     }
 }
 
