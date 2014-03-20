@@ -186,7 +186,24 @@ namespace UnitTests.CommunicationXMLTests
             Assert.IsNotNull(data);
 
             Debug.WriteLine(StringToBytesConverter.GetString(data));
-            
+        }
+
+        [TestMethod]
+        public void SolutionsTest()
+        {
+            //Arrange
+            Solutions s = new Solutions("name", 123, new byte[] { 1, 3, 5 }, new Solution[] {
+            new Solution(null, false, SolutionType.Ongoing, 100, new byte[]{ 1, 2}),
+            new Solution(123, true, SolutionType.Partial, 400, new byte[]{ 3, 5, 7, 8})
+            });
+
+            //Act
+            byte[] data = s.GetXmlData();
+
+            //Assert
+            Assert.IsNotNull(data);
+
+            Debug.WriteLine(StringToBytesConverter.GetString(data));
         }
 
     }

@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace CommunicationXML
 {
     /// <summary>
     /// Klasa reprezentująca wiadomości typu Solutions
     /// </summary>
+    [XmlRoot(Namespace=ADRES)]
     public class Solutions : MessageObject
     {
         /// <summary>
         /// Nazwa typu problemu
         /// </summary>
+        [XmlElement]
         public String ProblemType
         {
             get { return problemType; }
@@ -24,6 +27,7 @@ namespace CommunicationXML
         /// <summary>
         /// Id instancji problemu nadane przez serwer
         /// </summary>
+        [XmlElement]
         public UInt64 Id
         {
             get { return id; }
@@ -34,6 +38,7 @@ namespace CommunicationXML
         /// <summary>
         /// Dane wspólne
         /// </summary>
+        [XmlElement]
         public byte[] CommonData
         {
             get { return commonData; }
@@ -44,6 +49,7 @@ namespace CommunicationXML
         /// <summary>
         /// Lista rozwiązań
         /// </summary>
+        [XmlArray(ElementName="Solutions")]
         public List<Solution> SolutionsList
         {
             get { return solutions; }
@@ -58,7 +64,7 @@ namespace CommunicationXML
         /// <param name="_id">Id instancji problemu nadane przez serwer</param>
         /// <param name="_commonData">Dane wspólne</param>
         /// <param name="_solutions">Lista rozwiązań</param>
-        public Solutions(String _problemType, UInt64 _id, byte[] _commonData, IEnumerable<Solution> _solutions)
+        public Solutions(String _problemType, UInt64 _id, byte[] _commonData, IEnumerable<Solution> _solutions) : base()
         {
             if (_commonData == null || _solutions == null)
                 throw new System.ArgumentNullException();
@@ -69,9 +75,21 @@ namespace CommunicationXML
             solutions = new List<Solution>(_solutions);
         }
 
+        /// <summary>
+        /// Konstruktor bezparametrowy na potrzeby serializacji
+        /// </summary>
+        public Solutions() : base()
+        {
+            problemType = "";
+            id = 0;
+            commonData = new byte[0];
+            solutions = new List<Solution>();
+        }
+
         public override byte[] GetXmlData()
         {
-            throw new NotImplementedException();
+            XmlMessageSerializer serializer = new XmlMessageSerializer();
+            return serializer.SerilizeMessageObject(this, typeof(Solutions));
         }
     }
 }
