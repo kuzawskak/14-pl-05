@@ -26,31 +26,76 @@ namespace Components
          * */
         static void Main(string[] args)
         {
-            string port;           
+            string ip_address;
+            string port; 
+            string timeout;
+            bool is_registered = false;
+          
+            Console.Write("IP Address ");
+            ip_address = Console.ReadLine();
             Console.Write("Port number: ");
             port = Console.ReadLine();
-            
-            ComputationalClient new_client = new ComputationalClient(int.Parse(port));
+            Console.Write("(optionally) timeout: ");
+            timeout = Console.ReadLine();
+            ComputationalClient new_client ;
+            if(timeout!=null)
+                new_client = new ComputationalClient(ip_address,int.Parse(port),ulong.Parse(timeout));
+            else 
+                new_client = new  ComputationalClient(ip_address,int.Parse(port),null);
 
             Console.Write(usage_info);
 
             ConsoleKeyInfo info = Console.ReadKey();
             if (info.Key == ConsoleKey.Enter)
             {
-                new_client.chooseFileAndRegister();                                               
+                string chosen_file = null;
+             
+                if ((chosen_file = chooseFile()) != null)
+                {
+                    is_registered = new_client.registerProblem(chosen_file);
+                }
+                                             
             }
 
-            Console.Write(usage_info_after_register);
-            info = Console.ReadKey();
-            if (info.Key == ConsoleKey.A)
+
+            if (is_registered)
             {
-                //send request to get problem status
-                new_client.getProblemStatus();
+                new_client.Work();
+                Console.Write(usage_info_after_register);
+                info = Console.ReadKey();
+                if (info.Key == ConsoleKey.A)
+                {
+                    //pobranie statusu problemu na żądanie
+                    new_client.getProblemStatus();
+                }
+
+                Console.Read();
             }
-                 
-            Console.Read();
 
 
+        }
+
+
+        public static string chooseFile()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Multiselect = false,
+                Title = "Select XML Document",
+                Filter = "XML Document|*.xml;"
+            };
+
+            string problem_data_filepath = null;
+
+            using (dialog)
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    problem_data_filepath = dialog.FileName;
+                    Console.WriteLine("You have chosen {0} to solve", problem_data_filepath);
+                }
+            }  
+            return problem_data_filepath;
         }
     }
 }

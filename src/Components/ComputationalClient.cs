@@ -11,113 +11,123 @@ using CommunicationXML;
 
 namespace Components
 {
-    //TODO:
-   // add method to close node, but the id must be saved in some file
-    //w konstruktorze sprawdzic czy jest cos w pliku z zapisanym stanem
-    //plik z numerem portu dodatkwoo
-    //jak zakonczy przetwarzanie po time-out lub rozwiazniu problemu to usuwamy plik
-
-
-
 
     public class ComputationalClient
     {
-        private NetworkListener listener;
+        private NetworkClient client;
         private ulong ProblemId { get;  set; }
+        //timeout for server
+        private DateTime Timeout;
+        //timeout set by user to compute
+        private ulong? SolvingTimeout;
+        private string ProblemType;
+        byte[] ProblemData;
+        private bool is_problem_solved = false;
 
-
-        /**
-         * Constructor will be changed, 
-         * as we will get to know which parameters will be needed
-         * the connection with server must be set
-         */
-        public ComputationalClient(int port_number)
+        /// <summary>
+        /// Konstruktor klasy ComputationalClient do komunikacji z użytkownikiem klastra
+        /// </summary>
+        /// <param name="address">Adres ip serwera</param>
+        /// <param name="port_number">Port nasłuchu</param>
+        /// <param name="solving_timeout">Opcjonalny maksymalny czas przetwarzania problemu</param>
+        public ComputationalClient(string address, int port_number,ulong? solving_timeout)
         {
-            listener.Start();
-            listener = new NetworkListener(port_number, ConnectionHandler);
+            SolvingTimeout = solving_timeout;
+            client = new NetworkClient(address, port_number);
         }
+       
 
-
-
-        //implementacja handlera dla klienta
-        //wiadomosci jakie moze otrzymac klient:
-        //potwierdzenie rejestracji, status zadania (zawarte w nim ewentualnie rozwiazanie koncowe)
-        private void ConnectionHandler(byte[] data, ConnectionContext ctx)
+       
+        /// <summary>
+        /// Rejestruje problem umieszczony w pliku o podanej sciezce w Serwerze
+        /// </summary>
+        /// <param name="problem_data_filepath">sciezka do pliku XML z danymi problemu</param>
+        /// <returns> wartosc boolowska - czy problem zostal zarejestrowany pomyslnie</returns>
+        public bool registerProblem(string problem_data_filepath)
         {
-            XMLParser parser = new XMLParser(data);           
-                switch (parser.MessageType)
-                {
-                    case MessageTypes.RegisterResponse:
-                        ProblemId = BitConverter.ToUInt64(parser.Message.GetXmlData(), 0);
-                        Console.WriteLine("Problem registered with nr: %l",ProblemId);
-                        break;
-
-                    case MessageTypes.Status:
-                        string status ="";
-                        Console.WriteLine("Status problemu: %s", status);
-                        //TODO:
-                        //sprawdz jaki status: error, rozwiazywanie,rozwiazany?
-                        break;
-                }
+            
+            XmlDocument problem_data_xml = new XmlDocument();
+            problem_data_xml.Load(problem_data_filepath);
+            ProblemData = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
           
-        }
-        
+            //will be changed
+            string problem_type = null;
 
-        public void chooseFileAndRegister()
-        {
-            var dialog = new OpenFileDialog
+            SolveRequest solve_request = new SolveRequest(problem_type, ProblemData, SolvingTimeout);
+            byte[] register_response = client.Work(solve_request.Data);
+            XMLParser parser = new XMLParser(register_response);
+            if (parser.MessageType == MessageTypes.RegisterResponse)
             {
-                Multiselect = false,
-                Title = "Select XML Document",
-                Filter = "XML Document|*.xml;"
-            };
-
-            string problem_data_filepath = null;
-
-            using (dialog)
-            {
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    problem_data_filepath = dialog.FileName;
-                    Console.WriteLine("You have chosen {0} to solve", problem_data_filepath);
-                }
+                RegisterResponse register_response_msg = parser.Message as RegisterResponse;
+                ProblemId = register_response_msg.Id;
+                Timeout = register_response_msg.Timeout;
             }
-
-
-            if (problem_data_filepath != null)
+            else
             {
-                XmlDocument problem_data_xml = new XmlDocument();
-                problem_data_xml.Load(problem_data_filepath);
-                byte[] problem_data_bytes = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
-                registerProblem(problem_data_bytes);
+                Console.WriteLine("ComputationalClient: problem registration failed");
+                return false;
             }
+            return true;
         }
 
-
-        public static void registerProblem(byte[] problem_data)
-        {
-            SolveRequest solve_request = new SolveRequest();
-            ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(solve_request.GetXmlData()); 
-          
-        }
-
+        /// <summary>
+        /// Pobiera status przetwarzania problemu i wyswietla na konsole
+        /// </summary>
         public void getProblemStatus()
-        {            
-            SolveRequest solve_request = new SolveRequest();
-            ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-            cc.Send(solve_request.GetXmlData());  
+        {
+            SolutionRequest solution_request = new SolutionRequest(ProblemId);
+            byte[] solution_response = client.Work(solution_request.GetXmlData());
+            XMLParser parser = new XMLParser(solution_response);
+            if (parser.MessageType == MessageTypes.Solutions)
+            {
+                Solutions solutions_status = parser.Message as Solutions;
+
+                string computing_status = null;
+                foreach (Solution s in solutions_status.SolutionsList)
+                {
+                    switch (s.Type)
+                    {
+                        case SolutionType.Final:
+                            computing_status = "Final";
+                            break;
+                        case SolutionType.Ongoing:
+                            computing_status = "OnGoing";
+                            break;
+                        case SolutionType.Partial:
+                            computing_status = "Partial";
+                            break;
+                    }
+
+                    Console.WriteLine("Task Id: {0}, computation status: {1}", s.TaskId, computing_status);               
+                }
+            }
+            else
+            {
+                Console.WriteLine("ComputationalClient: check solutions status failed");
+            }
+      
         }
 
-
+        /// <summary>
+        /// Usypia klienta na maksymalny czas przetwarzania problemu (SolvingTimeout)
+        ///( jesli taki byl ustalony )
+        /// </summary>
+        void Work()
+        {
+            //uspij na czas przetwarzania
+            if (SolvingTimeout!=null)
+            {
+                Thread.Sleep((int)SolvingTimeout);
+                getProblemStatus();
+            }
+            
+        }
 
 
         //metoda obslugujaca zamkniecie CC na czas przetwarzania
         public void TemporaryCloseForComputation()
         {
             //zapis stanu (port na ktorym nasluchuje i ProblemId) do XML lub innego pliku
-
-
         }
 
     }
