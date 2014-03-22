@@ -90,6 +90,8 @@ namespace Components
                     Solutions solutions_status = parser.Message as Solutions;
                     if (solutions_status != null)
                     {
+                        Console.WriteLine("Odebrano ID: {0}, problem {1}", solutions_status.Id, solutions_status.ProblemType);
+
                         string computing_status = null;
                         if (solutions_status.SolutionsList != null && solutions_status.SolutionsList.Count() == 0)
                             Console.WriteLine("Solution status received: no solutions available on the list");
@@ -138,7 +140,7 @@ namespace Components
                     //TODO: FIX IT!!
                     //jak uzywamy po raz drugi networkclienta, wiesza sie na metodzie getproblemstatus
                     getProblemStatus();
-              //  }
+
             }
             
         }

@@ -138,6 +138,9 @@ namespace Components
                     if (p.Status == ProblemStatus.Solved)
                     {
                         solutions.Add(new Solution(p.TimeoutOccured, SolutionType.Final, p.ComputationsTime, p.Data));
+
+                        // Usuwanie wysłanego problemu z listy.
+                        problems.Remove(p);
                     }
                     else
                     {
@@ -151,9 +154,6 @@ namespace Components
                     }
 
                     response = new Solutions(p.ProblemType, p.Id, p.CommonData, solutions);
-
-                    // Usuwanie wysłanego problemu z listy.
-                    problems.Remove(p);
                 }
             }
 
