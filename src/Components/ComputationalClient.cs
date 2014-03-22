@@ -112,7 +112,7 @@ namespace Components
         /// Usypia klienta na maksymalny czas przetwarzania problemu (SolvingTimeout)
         ///( jesli taki byl ustalony )
         /// </summary>
-        void Work()
+        public void Work()
         {
             //uspij na czas przetwarzania
             if (SolvingTimeout!=null)
