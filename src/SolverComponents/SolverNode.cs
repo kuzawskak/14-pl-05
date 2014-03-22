@@ -21,8 +21,7 @@ namespace SolverComponents
             //na razie ustalany przez usera - isttotne bedzie dopiero na poziomie implementacji algorytmow
             protected List<ComputationalThread> threads = new List<ComputationalThread>();
             protected byte computational_power;
-            //nasluchcuje "zlecen " serwera i na tej podstwie zaczyna dzielic lub rzowiazywac problem
-            protected NetworkListener listener;
+
             //client is for sending messages every <timeout> seconds to inform of being alive
             protected NetworkClient client;
             protected ulong component_id;
@@ -44,16 +43,13 @@ namespace SolverComponents
             public void Start()
             {
                 client = new NetworkClient(address, port);
-                listener = new NetworkListener(port, ConnectionHandler);
                 if (Register())
+                {
+                    Console.WriteLine("Component registered successfully with id = {0}", id);
                     Work();
+                }
             }
 
-            //implementowany w klasach potomnych
-            private void ConnectionHandler(byte[] data, ConnectionContext ctx)
-            {
-               
-            }
 
             /// <summary>
             /// Wywoluje sendStatusMessage() co timeout 
@@ -97,9 +93,7 @@ namespace SolverComponents
             /// </summary>
             public void SendStatusMessage()
             {            
-                Status status_msg = new Status(id, threads);
-                client.Work(status_msg.GetXmlData());
-               
+                          
             }       
 
         }

@@ -17,21 +17,6 @@ namespace SolverComponents
 
        
         /// <summary>
-        /// Implementacja handlera do komunikacji z serwerem dla CN
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="ctx"></param>
-        private void ConnectionHandler(byte[] data, ConnectionContext ctx)
-        {
-            XMLParser parser = new XMLParser(data);
-            switch (parser.MessageType)
-            {
-                case MessageTypes.SolvePartialProblems:
-                    break;
-            }
-        }
-
-        /// <summary>
         /// Rozwiazuje nadeslany problem czesciowy
         /// </summary>
         public void SolveProblem()
@@ -40,6 +25,18 @@ namespace SolverComponents
             Solutions solutions = new Solutions();
             client.Work(solutions.GetXmlData());
             
+        }
+
+        public void SendStatusMessage()
+        {
+            Status status_msg = new Status(id, threads);
+            byte[] response = client.Work(status_msg.GetXmlData());
+            XMLParser parser = new XMLParser(response);
+            switch (parser.MessageType)
+            {
+                case MessageTypes.SolvePartialProblems:
+                    break;
+            }
         }
 
     }

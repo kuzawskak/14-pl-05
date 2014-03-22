@@ -17,26 +17,6 @@ namespace SolverComponents
         {
         }
 
-        /// <summary>
-        /// Implementacja handlera do komunikacji z serwerem dla TM
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="ctx"></param>
-        private void ConnectionHandler(byte[] data, ConnectionContext ctx)
-        {
-            XMLParser parser = new XMLParser(data);
-            switch (parser.MessageType)
-            {
-                case MessageTypes.DivideProblem:
-                    DivideProblem((DivideProblem)parser.Message);
-                    break;
-                case MessageTypes.Solutions:
-                    MergeSolution();
-                    break;        
-                    
-            }
-
-        }
         
         //podziel problem
         public void DivideProblem(DivideProblem msg)
@@ -53,6 +33,24 @@ namespace SolverComponents
         public void MergeSolution()
         {
 
+        }
+
+
+        public void SendStatusMessage()
+        {
+            Status status_msg = new Status(id, threads);
+            byte[] response = client.Work(status_msg.GetXmlData());
+            XMLParser parser = new XMLParser(response);
+            switch (parser.MessageType)
+            {
+                case MessageTypes.DivideProblem:
+                    DivideProblem((DivideProblem)parser.Message);
+                    break;
+                case MessageTypes.Solutions:
+                    MergeSolution();
+                    break;
+
+            }
         }
     }
 }
