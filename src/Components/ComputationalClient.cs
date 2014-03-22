@@ -90,6 +90,8 @@ namespace Components
                     Solutions solutions_status = parser.Message as Solutions;
                     if (solutions_status != null)
                     {
+                        Console.WriteLine("Odebrano ID: {0}, problem {1}", solutions_status.Id, solutions_status.ProblemType);
+
                         string computing_status = null;
                         foreach (Solution s in solutions_status.SolutionsList)
                         {
@@ -133,7 +135,7 @@ namespace Components
 
                     //TODO: FIX IT!!
                     //jak uzywamy po raz drugi networkclienta, wiesza sie na metodzie getproblemstatus
-                   // getProblemStatus();
+                    getProblemStatus();
                 }
             }
             
