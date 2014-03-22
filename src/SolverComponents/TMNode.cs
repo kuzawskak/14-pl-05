@@ -8,46 +8,51 @@ using CommunicationXML;
 
 namespace SolverComponents
 {
+    //TODO: dla Taskmanagera potrzebna bedzie struktura pozwalajaca na wykrycie czy nadeslane dane od CC juz moga byc mergowane
+
     public class TMNode : SolverNode
     {
 
-        //konstruktor
-        public TMNode(int port_number,List<NodeType> solvalable_problems):base(port_number, solvalable_problems)
+        public TMNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
         }
 
-        //implementacja handlera dla TM
+        /// <summary>
+        /// Implementacja handlera do komunikacji z serwerem dla TM
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="ctx"></param>
         private void ConnectionHandler(byte[] data, ConnectionContext ctx)
         {
             XMLParser parser = new XMLParser(data);
             switch (parser.MessageType)
             {
-                case MessageTypes.RegisterResponse:
-                    //FROM ALBERT: tutaj chyba raczej powinno być : ((RegisterResponse)parser.Message).Id czy coś takiego, bo GetXmlData zwraca binarki gotowe do wysłania
-                    // parser.Message.GetXmlData().getComponentId()
-                    // parser.Message.GetXmlData().getTimeout()
-                    break;
                 case MessageTypes.DivideProblem:
-                    //DivideProblem();
+                    DivideProblem((DivideProblem)parser.Message);
                     break;
-
-                    break;
+                case MessageTypes.Solutions:
+                    MergeSolution();
+                    break;        
+                    
             }
 
         }
         
         //podziel problem
-        public void DivideProblem()
+        public void DivideProblem(DivideProblem msg)
         {
-            
+            //extract data from message
+            //start appropriate method implementing TaskSolver
+            ///after dividing problem send PartialProblems message           
         }
 
-        //polacz rozwiazania
+        /// <summary>
+        /// laczy rozwiazania czesciowe (konieczna implementacja interfejsu z TaskSolvera)
+        /// i wysyla do serwera
+        /// </summary>
         public void MergeSolution()
         {
+
         }
-
-        //
-
     }
 }

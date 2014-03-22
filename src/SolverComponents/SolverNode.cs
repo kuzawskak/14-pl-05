@@ -2,92 +2,107 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using CommunicationNetwork;
 using CommunicationXML;
 
 namespace SolverComponents
 {  
-        public enum NodeType
-        {
-            problemType1,
-            problemType2
-        }
-
+    
+    /// <summary>
+    /// Klasa bazowa dla komponentow TaskSolvera - TaskManagera i ComputationalNode
+    /// </summary>
         public class SolverNode
         {
-
-            private List<NodeType> SolvalableProblems;
-            private int ComputationalPower;
-            private NetworkListener listener;
-            private int time;
-            private ulong ComponentId;
+            protected NodeType type;
+            //lista problemow na razie ustalana przez uzytkownika
+            protected List<string> problem_names = new List<string>();
+            //UWAGA: trzeba spytac czy ten parametr ma byc ustalany przez uzytkownika czy ustalany programowo
+            //na razie ustalany przez usera - isttotne bedzie dopiero na poziomie implementacji algorytmow
+            protected List<ComputationalThread> threads = new List<ComputationalThread>();
+            protected byte computational_power;
+            //nasluchcuje "zlecen " serwera i na tej podstwie zaczyna dzielic lub rzowiazywac problem
+            protected NetworkListener listener;
+            //client is for sending messages every <timeout> seconds to inform of being alive
+            protected NetworkClient client;
+            protected ulong component_id;
+            protected int port;
+            protected string address;
+            protected ulong id;
+            protected DateTime timeout;
            
             //konstruktor
-            public SolverNode( int port_number,List<NodeType> solvalable_problems)
+            public SolverNode(string address, int port,List<string> problem_names, byte computational_power)
             {
-                SolvalableProblems = solvalable_problems;
-                ComputationalPower = Environment.ProcessorCount;
-                listener = new NetworkListener(port_number, ConnectionHandler);
-                listener.Start();
+                //ComputationalPower = Environment.ProcessorCount;
+                this.address = address;
+                this.port = port;
+                this.problem_names = problem_names;
+                this.computational_power = computational_power;
             }
 
+            public void Start()
+            {
+                client = new NetworkClient(address, port);
+                listener = new NetworkListener(port, ConnectionHandler);
+                if (Register())
+                    Work();
+            }
 
-            //implementacja handlera dla TM i CN beda sie roznily
+            //implementowany w klasach potomnych
             private void ConnectionHandler(byte[] data, ConnectionContext ctx)
             {
-
-                XMLParser parser = new XMLParser(data);
-                switch (parser.MessageType)
-                {
-                    case MessageTypes.RegisterResponse:
-                        //FROM ALBERT: tutaj chyba raczej powinno być : ((RegisterResponse)parser.Message).Id czy coś takiego, bo GetXmlData zwraca binarki gotowe do wysłania
-                        // parser.Message.GetXmlData().getComponentId()
-                        // parser.Message.GetXmlData().getTimeout()
-                        //jak otrzyma 
-                        Work();
-                        break;
-                }
-            }
-
-
-
-            public void Work()
-            {
-                bool is_problem_solved = false;
-              //TODO: start threads work
-
-                while (!is_problem_solved)
-                {
-                    System.Threading.Thread.Sleep(time);
-
-                   
-                    SendStatusMessage();
-                }
-            }
-
-
-            //rejestracja u CS
-            public void RegisterNode()
-            {
-                //send xml as byte array with node parameters
-                byte[] node_params = null;
-                ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-                cc.Send(node_params);
-
-            }
-
-            //wysylanie statusu przetwarzania danych w komponencie
-            public void SendStatusMessage()
-            {
-                byte[] problem_status = null;
-                /*
-                 * TODO: get status from every working thread
-                 */
-                ConnectionContext cc = new ConnectionContext(System.Threading.Thread.CurrentThread);
-                cc.Send(problem_status); 
                
             }
+
+            /// <summary>
+            /// Wywoluje sendStatusMessage() co timeout 
+            /// </summary>
+            public void Work()
+            {
+                while(true)
+                {
+                    Thread.Sleep(timeout.Millisecond);
+                    SendStatusMessage();
+                    
+                }
+            }
+
+            /// <summary>
+            /// Rejestracja komponentu u CS
+            /// </summary>
+            /// <returns></returns>
+            public bool Register()
+            {
+
+                Register register_message = new Register(type,computational_power,problem_names);
+                byte[] register_response = client.Work(register_message.GetXmlData());
+                XMLParser parser = new XMLParser(register_response);
+                if (parser.MessageType == MessageTypes.RegisterResponse)
+                {
+                    RegisterResponse register_response_msg = parser.Message as RegisterResponse;
+                    id = register_response_msg.Id;
+                    timeout = register_response_msg.Timeout;
+                }
+                else
+                {
+                    Console.WriteLine("SolverNode: registration failed");
+                    return false;
+                }
+                return true;
+            }
+
+            /// <summary>
+            /// Wysylanie cyklicznej wiadomosci  o stanie przetwarzania danych w komponencie
+            /// </summary>
+            public void SendStatusMessage()
+            {            
+                Status status_msg = new Status(id, threads);
+                client.Work(status_msg.GetXmlData());
+               
+            }
+
+          
 
         }
 

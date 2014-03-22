@@ -15,14 +15,10 @@ namespace Components
     public class ComputationalClient
     {
         private NetworkClient client;
-        private ulong ProblemId { get;  set; }
-        //timeout for server
-        private DateTime Timeout;
-        //timeout set by user to compute
-        private ulong? SolvingTimeout;
-        private string ProblemType;
-        byte[] ProblemData;
-        private bool is_problem_solved = false;
+        private ulong problem_id;
+        private ulong? solving_timeout;
+        private string problem_type;
+        byte[] problem_data;
 
         /// <summary>
         /// Konstruktor klasy ComputationalClient do komunikacji z użytkownikiem klastra
@@ -32,7 +28,7 @@ namespace Components
         /// <param name="solving_timeout">Opcjonalny maksymalny czas przetwarzania problemu</param>
         public ComputationalClient(string address, int port_number,ulong? solving_timeout)
         {
-            SolvingTimeout = solving_timeout;
+            this.solving_timeout = solving_timeout;
             client = new NetworkClient(address, port_number);
         }
        
@@ -48,19 +44,18 @@ namespace Components
             
             XmlDocument problem_data_xml = new XmlDocument();
             problem_data_xml.Load(problem_data_filepath);
-            ProblemData = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
+            problem_data = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
           
             //will be changed
             string problem_type = null;
 
-            SolveRequest solve_request = new SolveRequest(problem_type, ProblemData, SolvingTimeout);
+            SolveRequest solve_request = new SolveRequest(problem_type, problem_data, solving_timeout);
             byte[] register_response = client.Work(solve_request.Data);
             XMLParser parser = new XMLParser(register_response);
-            if (parser.MessageType == MessageTypes.RegisterResponse)
+            if (parser.MessageType == MessageTypes.SolveRequestResponse)
             {
-                RegisterResponse register_response_msg = parser.Message as RegisterResponse;
-                ProblemId = register_response_msg.Id;
-                Timeout = register_response_msg.Timeout;
+                SolveRequestResponse register_response_msg = parser.Message as SolveRequestResponse;
+                problem_id = register_response_msg.Id;
             }
             else
             {
@@ -75,7 +70,7 @@ namespace Components
         /// </summary>
         public void getProblemStatus()
         {
-            SolutionRequest solution_request = new SolutionRequest(ProblemId);
+            SolutionRequest solution_request = new SolutionRequest(problem_id);
             byte[] solution_response = client.Work(solution_request.GetXmlData());
             XMLParser parser = new XMLParser(solution_response);
             if (parser.MessageType == MessageTypes.Solutions)
@@ -115,9 +110,9 @@ namespace Components
         public void Work()
         {
             //uspij na czas przetwarzania
-            if (SolvingTimeout!=null)
+            if (solving_timeout!=null)
             {
-                Thread.Sleep((int)SolvingTimeout);
+                Thread.Sleep((int)solving_timeout);
                 getProblemStatus();
             }
             

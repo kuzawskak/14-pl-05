@@ -10,30 +10,36 @@ namespace SolverComponents
 {
     public class CNNode : SolverNode
     {
-        //konstruktor
-        public CNNode(int port_number, List<NodeType> solvalable_problems)
-            : base(port_number, solvalable_problems)
+        
+        public CNNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
         }
 
        
-        //implementacja handlera dla CN
+        /// <summary>
+        /// Implementacja handlera do komunikacji z serwerem dla CN
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="ctx"></param>
         private void ConnectionHandler(byte[] data, ConnectionContext ctx)
         {
             XMLParser parser = new XMLParser(data);
             switch (parser.MessageType)
             {
-                case MessageTypes.RegisterResponse:
-                    //FROM ALBERT: tutaj chyba raczej powinno być : ((RegisterResponse)parser.Message).Id czy coś takiego, bo GetXmlData zwraca binarki gotowe do wysłania
-                    // parser.Message.GetXmlData().getComponentId()
-                    // parser.Message.GetXmlData().getTimeout()
+                case MessageTypes.SolvePartialProblems:
                     break;
             }
         }
 
-
+        /// <summary>
+        /// Rozwiazuje nadeslany problem czesciowy
+        /// </summary>
         public void SolveProblem()
         {
+            //after solving send Solutions Message
+            Solutions solutions = new Solutions();
+            client.Work(solutions.GetXmlData());
+            
         }
 
     }
