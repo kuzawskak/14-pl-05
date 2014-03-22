@@ -43,8 +43,8 @@ namespace Components
             Data = data;
             SolvingTimeout = timeout;
             ProblemType = problemType;
-            CommonData = null;
-            PartialProblems = null;
+            CommonData = new byte[0];
+            PartialProblems = new List<PartialProblem>();
             ComputationsTime = 0;
             TimeoutOccured = false;
 
