@@ -24,24 +24,29 @@ namespace Components
         /**
          *  in Main function we only handle user's key press
          * */
+        [STAThread]
         static void Main(string[] args)
         {
             string ip_address;
             string port; 
             string timeout;
+            string problem_type;
             bool is_registered = false;
           
             Console.Write("IP Address ");
             ip_address = Console.ReadLine();
             Console.Write("Port number: ");
             port = Console.ReadLine();
+            Console.Write("problem_type: ");
+            problem_type = Console.ReadLine();
             Console.Write("(optionally) timeout: ");
             timeout = Console.ReadLine();
+
             ComputationalClient new_client ;
             if(timeout!=null)
-                new_client = new ComputationalClient(ip_address,int.Parse(port),ulong.Parse(timeout));
+                new_client = new ComputationalClient(ip_address,int.Parse(port),ulong.Parse(timeout),problem_type);
             else 
-                new_client = new  ComputationalClient(ip_address,int.Parse(port),null);
+                new_client = new  ComputationalClient(ip_address,int.Parse(port),null,problem_type);
 
             Console.Write(usage_info);
 
@@ -71,8 +76,10 @@ namespace Components
 
                 Console.Read();
             }
+            else
+                Console.WriteLine("Client is not registered");
 
-
+            Console.Read();
         }
 
 

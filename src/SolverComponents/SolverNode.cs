@@ -100,9 +100,7 @@ namespace SolverComponents
                 Status status_msg = new Status(id, threads);
                 client.Work(status_msg.GetXmlData());
                
-            }
-
-          
+            }       
 
         }
 
