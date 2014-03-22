@@ -91,6 +91,9 @@ namespace Components
                     if (solutions_status != null)
                     {
                         string computing_status = null;
+                        if (solutions_status.SolutionsList != null && solutions_status.SolutionsList.Count() == 0)
+                            Console.WriteLine("Solution status received: no solutions available on the list");
+                        else
                         foreach (Solution s in solutions_status.SolutionsList)
                         {
                             switch (s.Type)
@@ -108,6 +111,7 @@ namespace Components
 
                             Console.WriteLine("Task Id: {0}, computation status: {1}", s.TaskId, computing_status);
                         }
+                      
                     }
                 }
             }
@@ -124,17 +128,17 @@ namespace Components
         /// </summary>
         public void Work()
         {
-            while (true)
+         //   while (true)
             {
                // uspij na czas przetwarzania
-                if (solving_timeout != null)
-                {
+              //  if (solving_timeout != null)
+             //   {
                     Thread.Sleep((int)solving_timeout);
 
                     //TODO: FIX IT!!
                     //jak uzywamy po raz drugi networkclienta, wiesza sie na metodzie getproblemstatus
-                   // getProblemStatus();
-                }
+                    getProblemStatus();
+              //  }
             }
             
         }

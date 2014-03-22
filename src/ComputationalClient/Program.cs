@@ -67,14 +67,18 @@ namespace Components
             {
                 new_client.Work();
                 Console.Write(usage_info_after_register);
-                info = Console.ReadKey();
-                if (info.Key == ConsoleKey.A)
+                do
                 {
-                    //pobranie statusu problemu na żądanie
-                    new_client.getProblemStatus();
-                }
 
-                Console.Read();
+                    info = Console.ReadKey();
+                    if (info.Key == ConsoleKey.A)
+                    {
+                        //pobranie statusu problemu na żądanie
+                        new_client.getProblemStatus();
+                    }
+                }
+                while (true);
+
             }
             else
                 Console.WriteLine("Client is not registered");
