@@ -10,11 +10,16 @@ namespace SolverComponents
 {
     //TODO: dla Taskmanagera potrzebna bedzie struktura pozwalajaca na wykrycie czy nadeslane dane od CC juz moga byc mergowane
 
+
+
     public class TMNode : SolverNode
     {
 
+        private List<PartialProblem> ongoing_problems = new List<PartialProblem>();
+
         public TMNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
+            type = NodeType.TaskManager;
         }
 
         
@@ -60,6 +65,7 @@ namespace SolverComponents
             {
                 Console.WriteLine("adding partial problem to divided problems");
                 PartialProblem pp = new PartialProblem((ulong)i, msg.Data);
+                ongoing_problems.Add(pp);
                 divided_problems.Add(pp);
             }
 
@@ -104,12 +110,33 @@ namespace SolverComponents
         public void tryMergeSolution(Solutions msg)
         {
             Console.WriteLine("TM try to Merge solution of the problem with id = {0}  into final", msg.Id);
-            //one common solution
-            Solution final_solution  =  new Solution(null,false,SolutionType.Final,1000,msg.CommonData);
-            List<Solution> solution_to_send = new List<Solution>();
-            solution_to_send.Add(final_solution);
+            //check if solved problems number is equal to 
+            bool ready_to_merge = true;
+            foreach(Solution s in msg.SolutionsList)
+            {
+                if (s.Type != SolutionType.Partial)
+                    ready_to_merge = false;
+            }
 
-            Solutions solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
+
+            Solutions solutions_msg = null;
+            if (ready_to_merge)
+            {
+                Console.WriteLine("TM: Ready to merge solution");
+                //one common solution
+                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final, 1000, msg.CommonData);
+                List<Solution> solution_to_send = new List<Solution>();
+                solution_to_send.Add(final_solution);
+
+                solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
+            }
+
+            else
+            {
+                Console.WriteLine("TM: unready to merge");
+                solutions_msg = msg;
+            }
+
             byte[] response = client.Work(solutions_msg.GetXmlData());
             if (response == null)
             {
