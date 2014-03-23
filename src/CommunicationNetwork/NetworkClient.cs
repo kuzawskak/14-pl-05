@@ -27,8 +27,9 @@ namespace CommunicationNetwork
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public byte[] Work(byte[] data) {
+        public byte[] Work(object _data) {
             try {
+                byte[] data = (byte[])_data;
                 if (address == null || port < 0)
                     throw new Exception("Invaild address or port");
                 if (data == null)

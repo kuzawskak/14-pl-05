@@ -22,14 +22,14 @@ namespace UnitTests.CommunicationNetwork
             NetworkClient nc = null;
             memcmp mcmp = (d1, d2) => { if (d1.Length != d2.Length) return false;
                                         for (int i = 0; i < d1.Length; ++i)
-                                            if (d1[i] != d1[i])
+                                            if (d1[i] != d2[i])
                                                 return false;
                                         return true; 
                                         };
 
             NetworkListener nl = null;
 
-            // *** Listener is not started ***
+            // *** Listener is started ***
             nl = new NetworkListener(22222, ch);
             Assert.IsNotNull(nl);
             
