@@ -37,32 +37,16 @@ namespace SolverComponents
                 this.address = address;
                 this.port = port;
                 this.problem_names = problem_names;
+                Console.WriteLine("comp power: {0}",(int)computational_power);
                 this.computational_power = computational_power;
-            }
-
-            public void Start()
-            {
-                client = new NetworkClient(address, port);
-                if (Register())
+                for (int i = 0; i < (int)computational_power; i++)
                 {
-                    Console.WriteLine("Component registered successfully with id = {0}", id);
-                    Work();
+                    threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));
+
                 }
             }
 
 
-            /// <summary>
-            /// Wywoluje sendStatusMessage() co timeout 
-            /// </summary>
-            public void Work()
-            {
-                while(true)
-                {
-                    Thread.Sleep(timeout.Millisecond);
-                    SendStatusMessage();
-                    
-                }
-            }
 
             /// <summary>
             /// Rejestracja komponentu u CS
@@ -79,6 +63,7 @@ namespace SolverComponents
                     RegisterResponse register_response_msg = parser.Message as RegisterResponse;
                     id = register_response_msg.Id;
                     timeout = register_response_msg.Timeout;
+                    Console.WriteLine("Received register values: id = {0}, timeout = {1} ms", id, timeout.Second*1000);
                 }
                 else
                 {
