@@ -53,11 +53,11 @@ namespace Components
         /// </summary>
         public void Stop()
         {
-            // TODO: Zamienic to na ustawienie flagi
             working = false;
             backgroundToken.Cancel();
             Thread.Sleep(1000);
-            Environment.Exit(0);
+            listener.Stop();
+            //Environment.Exit(0);
         }
 
         /// <summary>

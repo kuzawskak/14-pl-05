@@ -150,6 +150,9 @@ namespace CommunicationNetwork
             _cli.Close();
         }
 
+        /// <summary>
+        /// Stop serwera
+        /// </summary>
         public void Stop() {
             // kill all threads
             //List<Thread> _t = threads;
@@ -165,6 +168,11 @@ namespace CommunicationNetwork
             is_running = false;
         }
 
+
+        /// <summary>
+        /// Czy listener nasłuchuje
+        /// </summary>
+        /// <returns></returns>
         public bool IsRunning() {
             return is_running;
         }
