@@ -21,22 +21,26 @@ namespace Components
         byte[] problem_data;
         private string address;
         private int port;
+
         /// <summary>
-        /// Konstruktor klasy ComputationalClient do komunikacji z użytkownikiem klastra
+        /// Konstruktor uwzgledniajacy istnienie problemu (wtedy podajemy id)
         /// </summary>
+        /// <param name="problem_id">Id przetwarzanego problemu</param>
         /// <param name="address">Adres ip serwera</param>
         /// <param name="port_number">Port nasłuchu</param>
         /// <param name="solving_timeout">Opcjonalny maksymalny czas przetwarzania problemu</param>
-        public ComputationalClient(string address, int port_number,ulong? solving_timeout,string problem_type)
+        public ComputationalClient(ulong? problem_id,string address, int port_number, ulong? solving_timeout, string problem_type)
         {
+            if (problem_id != null)
+            {
+                this.problem_id = (ulong)problem_id;
+            }
             this.address = address;
             this.port = port_number;
             this.problem_type = problem_type;
             this.solving_timeout = solving_timeout;
             client = new NetworkClient(address, port_number);
         }
-       
-
        
         /// <summary>
         /// Rejestruje problem umieszczony w pliku o podanej sciezce w Serwerze
@@ -130,19 +134,7 @@ namespace Components
         /// </summary>
         public void Work()
         {
-         //   while (true)
-            {
-               // uspij na czas przetwarzania
-              //  if (solving_timeout != null)
-             //   {
-                    Thread.Sleep((int)solving_timeout);
-
-                    //TODO: FIX IT!!
-                    //jak uzywamy po raz drugi networkclienta, wiesza sie na metodzie getproblemstatus
-                    getProblemStatus();
-
-            }
-            
+              getProblemStatus();         
         }
 
 
