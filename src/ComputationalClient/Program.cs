@@ -12,12 +12,14 @@ namespace Components
     {
         
         //CC usage info to show on start
-        static String usage_info = "Computational Client usage: \n"+
+        static String usage_info = "______________________________\n"+
+                                   "Computational Client usage: \n"+
                                    "press ENTER to load file with problem data\n"+
                                    "press ESC to close Client\n";
 
         //CC usage info to show after problem register
-        static String usage_info_after_register = "Problem registered successfully\n"+
+        static String usage_info_after_register = "________________________________\n"+
+                                                  "Problem registered successfully\n"+
                                                   "press A to check problem status\n";
 
         
@@ -28,58 +30,77 @@ namespace Components
         static void Main(string[] args)
         {
             string ip_address;
-            string port; 
-            string timeout;
+            string port;
+            ulong timeout;
+            ulong? n_timeout;
             string problem_type;
             bool is_registered = false;
+            ulong? problem_id = null;
+
+            Console.WriteLine("Do you want to check status of existing problem? (y/n)\n");
+            string dec = Console.ReadLine();
+            if (dec == "y")
+            {
+                Console.Write("problem id:  ");
+                problem_id = ulong.Parse(Console.ReadLine());
+            }
+
           
-            Console.Write("IP Address ");
+            Console.Write("IP Address:  ");
             ip_address = Console.ReadLine();
             Console.Write("Port number: ");
             port = Console.ReadLine();
             Console.Write("problem_type: ");
             problem_type = Console.ReadLine();
             Console.Write("(optionally) timeout: ");
-            timeout = Console.ReadLine();
+            UInt64.TryParse(Console.ReadLine(),out timeout);
+            if (timeout == 0) n_timeout = null;
+            else n_timeout = timeout;
+            ComputationalClient new_client;
+ 
+            new_client = new ComputationalClient(problem_id,ip_address, int.Parse(port), n_timeout, problem_type);
 
-            ComputationalClient new_client ;
-            if(timeout!=null)
-                new_client = new ComputationalClient(ip_address,int.Parse(port),ulong.Parse(timeout),problem_type);
-            else 
-                new_client = new  ComputationalClient(ip_address,int.Parse(port),null,problem_type);
-
-            Console.Write(usage_info);
-
-            ConsoleKeyInfo info = Console.ReadKey();
-            if (info.Key == ConsoleKey.Enter)
+            ConsoleKeyInfo info;
+            if (dec == "y") is_registered = true;
+            else
             {
-                string chosen_file = null;
-             
-                if ((chosen_file = chooseFile()) != null)
-                {
-                    is_registered = new_client.registerProblem(chosen_file);
-                }
-                                             
-            }
+                Console.Write(usage_info);
 
+                 info = Console.ReadKey();
+                if (info.Key == ConsoleKey.Enter)
+                {
+                    string chosen_file = null;
+
+                    if ((chosen_file = chooseFile()) != null)
+                    {
+                        is_registered = new_client.registerProblem(chosen_file);
+                    }
+
+                }
+            }
 
             if (is_registered)
             {
                 new_client.Work();
                 Console.Write(usage_info_after_register);
-                info = Console.ReadKey();
-                if (info.Key == ConsoleKey.A)
+                do
                 {
-                    //pobranie statusu problemu na żądanie
-                    new_client.getProblemStatus();
-                }
 
-                Console.Read();
+                    info = Console.ReadKey();
+                    if (info.Key == ConsoleKey.A)
+                    {
+                        //pobranie statusu problemu na żądanie
+                        new_client.getProblemStatus();
+                    }
+    
+                }
+                while (info.Key!=ConsoleKey.Escape);
+
             }
             else
                 Console.WriteLine("Client is not registered");
 
-            Console.Read();
+            return;
         }
 
 

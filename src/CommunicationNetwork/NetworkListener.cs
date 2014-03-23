@@ -28,8 +28,10 @@ namespace CommunicationNetwork
             try
             {
                 if (is_running)
-                    throw new Exception("Listener is already listening on port: " + port);
+                    return;
                 IPAddress ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
+                if (port < 0)
+                    throw new Exception("Port value is invalid");
                 tcp = new TcpListener(ipAddress, port);
                 tcp.Start();
                 is_running = true;
@@ -43,10 +45,18 @@ namespace CommunicationNetwork
 
                     // create a new thread for data analisys
                     Thread t = new Thread(new ParameterizedThreadStart(ThreadWork));
-
+                    
                     // add try chatch block, if thread interrupts
                     threads.Add(t);
                     t.Start(cli);
+                    /*
+                    // should be carefully tested!!!
+                    foreach(Thread _t in threads)
+                        if (t.ThreadState != ThreadState.Running) {
+                            _t.Join();
+                            threads.Remove(_t);
+                        }
+                    */
                 }
             }
             catch (SocketException se)
@@ -140,16 +150,31 @@ namespace CommunicationNetwork
             _cli.Close();
         }
 
+        /// <summary>
+        /// Stop serwera
+        /// </summary>
         public void Stop() {
+            // kill all threads
+            //List<Thread> _t = threads;
+            foreach (Thread t in threads) {
+                t.Abort();
+                //_t.Remove(t);
+            }
+            foreach (Thread t in threads)
+                t.Join();
+
             if (is_running)
                 tcp.Stop();
             is_running = false;
+        }
 
-            // kill all threads and
-            foreach (Thread t in threads)
-                t.Abort();
-            foreach (Thread t in threads)
-                t.Join();
+
+        /// <summary>
+        /// Czy listener nasłuchuje
+        /// </summary>
+        /// <returns></returns>
+        public bool IsRunning() {
+            return is_running;
         }
 
         /// <summary>

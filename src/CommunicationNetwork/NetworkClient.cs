@@ -7,6 +7,9 @@ using System.Net.Sockets;
 
 namespace CommunicationNetwork
 {
+    /// <summary>
+    /// Klasa dla symulowania klienta sieci
+    /// </summary>
     public class NetworkClient
     {
         TcpClient cli = null;
@@ -19,8 +22,14 @@ namespace CommunicationNetwork
             port = _port;
         }
 
-        public byte[] Work(byte[] data) {
+        /// <summary>
+        /// metoda, która odpowiada za komunikację z Listenerem
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public byte[] Work(object _data) {
             try {
+                byte[] data = (byte[])_data;
                 if (address == null || port < 0)
                     throw new Exception("Invaild address or port");
                 if (data == null)

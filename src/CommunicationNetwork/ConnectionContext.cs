@@ -13,6 +13,10 @@ namespace CommunicationNetwork
         System.Threading.Thread t = null;
         byte[] msg = null;
 
+        /// <summary>
+        /// Wysyłanie danych do listenera
+        /// </summary>
+        /// <param name="message"></param>
         public void Send(byte[] message)
         {
             //if (t != null)

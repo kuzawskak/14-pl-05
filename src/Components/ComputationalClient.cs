@@ -21,22 +21,26 @@ namespace Components
         byte[] problem_data;
         private string address;
         private int port;
+
         /// <summary>
-        /// Konstruktor klasy ComputationalClient do komunikacji z użytkownikiem klastra
+        /// Konstruktor uwzgledniajacy istnienie problemu (wtedy podajemy id)
         /// </summary>
+        /// <param name="problem_id">Id przetwarzanego problemu</param>
         /// <param name="address">Adres ip serwera</param>
         /// <param name="port_number">Port nasłuchu</param>
         /// <param name="solving_timeout">Opcjonalny maksymalny czas przetwarzania problemu</param>
-        public ComputationalClient(string address, int port_number,ulong? solving_timeout,string problem_type)
+        public ComputationalClient(ulong? problem_id,string address, int port_number, ulong? solving_timeout, string problem_type)
         {
+            if (problem_id != null)
+            {
+                this.problem_id = (ulong)problem_id;
+            }
             this.address = address;
             this.port = port_number;
             this.problem_type = problem_type;
             this.solving_timeout = solving_timeout;
             client = new NetworkClient(address, port_number);
         }
-       
-
        
         /// <summary>
         /// Rejestruje problem umieszczony w pliku o podanej sciezce w Serwerze
@@ -93,6 +97,9 @@ namespace Components
                         Console.WriteLine("Odebrano ID: {0}, problem {1}", solutions_status.Id, solutions_status.ProblemType);
 
                         string computing_status = null;
+                        if (solutions_status.SolutionsList != null && solutions_status.SolutionsList.Count() == 0)
+                            Console.WriteLine("Solution status received: no solutions available on the list");
+                        else
                         foreach (Solution s in solutions_status.SolutionsList)
                         {
                             switch (s.Type)
@@ -110,6 +117,7 @@ namespace Components
 
                             Console.WriteLine("Task Id: {0}, computation status: {1}", s.TaskId, computing_status);
                         }
+                      
                     }
                 }
             }
@@ -126,19 +134,7 @@ namespace Components
         /// </summary>
         public void Work()
         {
-            while (true)
-            {
-               // uspij na czas przetwarzania
-                if (solving_timeout != null)
-                {
-                    Thread.Sleep((int)solving_timeout);
-
-                    //TODO: FIX IT!!
-                    //jak uzywamy po raz drugi networkclienta, wiesza sie na metodzie getproblemstatus
-                    getProblemStatus();
-                }
-            }
-            
+              getProblemStatus();         
         }
 
 
