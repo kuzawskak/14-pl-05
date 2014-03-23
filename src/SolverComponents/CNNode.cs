@@ -13,6 +13,7 @@ namespace SolverComponents
         
         public CNNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
+            type = NodeType.ComputationalNode;
         }
 
        
@@ -31,7 +32,7 @@ namespace SolverComponents
             {
                 foreach (PartialProblem pp in problems_list)
                 {
-                    Solution s = new Solution(false, SolutionType.Partial, 1000, pp.Data);
+                    Solution s = new Solution(pp.TaskId,false,SolutionType.Partial, 1000, pp.Data);
                     solution.Add(s);
                 }
             }
@@ -77,6 +78,7 @@ namespace SolverComponents
                         break;
                     default:
                         Console.WriteLine("Different message than SolvePartialProblems received");
+                        Console.WriteLine(parser.MessageType);
                         break;
                 }
             }
