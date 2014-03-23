@@ -87,7 +87,7 @@ namespace SolverComponents
         {
             while (true)
             {
-                Thread.Sleep(timeout.Second * 1000);
+                Thread.Sleep(timeout_in_ms);
                 SendStatusMessage();
 
             }

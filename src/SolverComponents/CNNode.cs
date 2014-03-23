@@ -90,7 +90,7 @@ namespace SolverComponents
             while (true)
             {
                 Console.WriteLine("Sleep time = {0}", timeout.Second * 1000);
-                Thread.Sleep(timeout.Second * 1000);
+                Thread.Sleep(timeout_in_ms);
                 SendStatusMessage();
 
             }

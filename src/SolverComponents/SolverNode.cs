@@ -29,6 +29,7 @@ namespace SolverComponents
             protected string address;
             protected ulong id;
             protected DateTime timeout;
+            protected int timeout_in_ms;
            
             //konstruktor
             public SolverNode(string address, int port,List<string> problem_names, byte computational_power)
@@ -63,7 +64,8 @@ namespace SolverComponents
                     RegisterResponse register_response_msg = parser.Message as RegisterResponse;
                     id = register_response_msg.Id;
                     timeout = register_response_msg.Timeout;
-                    Console.WriteLine("Received register values: id = {0}, timeout = {1} ms", id, timeout.Second*1000);
+                    timeout_in_ms =(timeout.Hour *3600+timeout.Minute*60 + timeout.Second) * 1000 + timeout.Millisecond;
+                    Console.WriteLine("Received register values: id = {0}, timeout = {1} ms", id, timeout_in_ms);
                 }
                 else
                 {
