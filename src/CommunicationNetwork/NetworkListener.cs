@@ -144,7 +144,6 @@ namespace CommunicationNetwork
             if (is_running)
                 tcp.Stop();
             is_running = false;
-
             // kill all threads and
             foreach (Thread t in threads)
                 t.Abort();
