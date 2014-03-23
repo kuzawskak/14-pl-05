@@ -18,7 +18,7 @@ namespace RemoteTester
         {
             try
             {
-                NetworkClient nc = new NetworkClient("localhost", 22221);
+                NetworkClient nc = new NetworkClient("localhost", 22222);
                 if (nc == null)
                 {
                     Console.WriteLine("RemoteTester: NetworkClient object equals to null");
