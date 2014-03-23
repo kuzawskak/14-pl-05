@@ -15,7 +15,8 @@ namespace SolverComponents
     public class TMNode : SolverNode
     {
 
-        private List<PartialProblem> ongoing_problems = new List<PartialProblem>();
+        
+        private static List<SolverRegisteredProblem> ongoing_problems = new List<SolverRegisteredProblem>();
 
         public TMNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
@@ -64,16 +65,19 @@ namespace SolverComponents
             for (int i = 0; i < (int)computational_nodes; i++)
             {
                 Console.WriteLine("adding partial problem to divided problems");
-                PartialProblem pp = new PartialProblem((ulong)i, msg.Data);
-                ongoing_problems.Add(pp);
+                PartialProblem pp = new PartialProblem((ulong)i, msg.Data);            
                 divided_problems.Add(pp);
             }
+
 
             if (divided_problems.Count == 0)
             {
                 Console.WriteLine("TM: Cannot send msg with no partial problems set");
                 return;
             }
+
+            SolverRegisteredProblem srp = new SolverRegisteredProblem(msg.Id,divided_problems);
+            ongoing_problems.Add(srp);
             SolvePartialProblems solve_partial_problems_msg = new SolvePartialProblems(msg.ProblemType,msg.Id, msg.Data, timeout_in_miliseconds, divided_problems);
 
             byte[] response = client.Work(solve_partial_problems_msg.GetXmlData());
@@ -111,17 +115,21 @@ namespace SolverComponents
         {
             Console.WriteLine("TM try to Merge solution of the problem with id = {0}  into final", msg.Id);
             //check if solved problems number is equal to 
-            bool ready_to_merge = true;
-            foreach(Solution s in msg.SolutionsList)
-            {
-                if (s.Type != SolutionType.Partial)
-                    ready_to_merge = false;
-            }
 
+            SolverRegisteredProblem p = ongoing_problems.Find(x => msg.Id ==x.ProblemId);
+            if (p != null)
+            {
+                foreach (Solution s in msg.SolutionsList)
+                {
+                    p.MarkAsSolved((ulong)s.TaskId);
+                }
+            }
+            else Console.WriteLine("Not foung Solver registered problem");
 
             Solutions solutions_msg = null;
-            if (ready_to_merge)
+            if (p!=null && p.IsProblemSolved())
             {
+                ongoing_problems.Remove(p);
                 Console.WriteLine("TM: Ready to merge solution");
                 //one common solution
                 Solution final_solution = new Solution(msg.Id, false, SolutionType.Final, 1000, msg.CommonData);
