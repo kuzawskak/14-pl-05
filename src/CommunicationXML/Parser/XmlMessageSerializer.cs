@@ -27,7 +27,8 @@ namespace CommunicationXML
             StringWriter stringWriter = new StringWriter(sb);
             serializer.Serialize(stringWriter, message);
 
-            return StringToBytesConverter.GetBytes(sb.ToString());
+           // return StringToBytesConverter.GetBytes(sb.ToString());
+            return System.Text.Encoding.UTF8.GetBytes(sb.ToString());
         }
     }
 }
