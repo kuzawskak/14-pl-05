@@ -29,10 +29,11 @@ namespace CommunicationNetwork
             {
                 if (is_running)
                     return;
-                IPAddress ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
+                //IPAddress ipAddress = Dns.GetHostEntry("localhost").AddressList[0];
                 if (port < 0)
                     throw new Exception("Port value is invalid");
-                tcp = new TcpListener(ipAddress, port);
+                tcp = new TcpListener(IPAddress.Parse("192.168.110.23"), port);
+                Console.WriteLine(LocalIPAddress());
                 tcp.Start();
                 is_running = true;
 
@@ -181,21 +182,21 @@ namespace CommunicationNetwork
         /// Lokalny adres IP
         /// </summary>
         /// <returns></returns>
-        //string LocalIPAddress()
-        //{
-        //    IPHostEntry host;
-        //    string localIP = "";
-        //    host = Dns.GetHostEntry(Dns.GetHostName());
-        //    foreach (IPAddress ip in host.AddressList)
-        //    {
-        //        if (ip.AddressFamily == AddressFamily.InterNetwork)
-        //        {
-        //            localIP = ip.ToString();
-        //            break;
-        //        }
-        //    }
-        //    return localIP;
-        //}
+        string LocalIPAddress()
+        {
+            IPHostEntry host;
+            string localIP = "";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    localIP = ip.ToString();
+                    break;
+                }
+            }
+            return localIP;
+        }
     }
 }
 
