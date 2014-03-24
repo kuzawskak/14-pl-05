@@ -27,8 +27,11 @@ namespace CommunicationXML
             StringWriter stringWriter = new StringWriter(sb);
             serializer.Serialize(stringWriter, message);
 
+            string result = sb.ToString();
+            result.Replace("utf-16", "utf-8");
+
            // return StringToBytesConverter.GetBytes(sb.ToString());
-            return System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            return System.Text.Encoding.UTF8.GetBytes(result.Replace("utf-16", "utf-8"));
         }
     }
 }
