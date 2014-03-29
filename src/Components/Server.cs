@@ -9,6 +9,9 @@ using System.Threading;
 
 namespace Components
 {
+    /// <summary>
+    /// Computational Server.
+    /// </summary>
     public class Server
     {
         private int port;
@@ -24,6 +27,11 @@ namespace Components
 
         private MessagePrinter debug;
 
+        /// <summary>
+        /// Konstruktor serwera.
+        /// </summary>
+        /// <param name="port">Port nasłuchu</param>
+        /// <param name="timeout">Timeout w sekundach</param>
         public Server(int port, TimeSpan timeout)
         {
             this.port = port;
@@ -57,7 +65,6 @@ namespace Components
             backgroundToken.Cancel();
             Thread.Sleep(1000);
             listener.Stop();
-            //Environment.Exit(0);
         }
 
         /// <summary>
@@ -121,7 +128,7 @@ namespace Components
         /// <summary>
         /// Wysyłanie rozwiązania do CC.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">SolutionRequest</param>
         private Solutions SendSolution(MessageObject obj)
         {
             Solutions response = null;
@@ -163,12 +170,11 @@ namespace Components
         /// <summary>
         /// Pobiera częściowe i całkowite rozwiązania.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">Solutions</param>
         private void GetSolutions(MessageObject obj)
         {
             Solutions solutions = obj as Solutions;
 
-            // TODO: Aktualizować ostatni czas połączenia?
             lock (lockObj)
             {
                 Problem p = problems.Find(x => x.Id == solutions.Id && x.ProblemType == solutions.ProblemType);
@@ -183,11 +189,9 @@ namespace Components
         /// <summary>
         /// Odbiera podzielone dane od TM.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">SolvePartialProblems</param>
         private void GetDividedProblem(MessageObject obj)
         {
-            // TODO: Czy zmienić informację o wolnych wątkach TM?
-            // TODO: Czy robić update czasu ostatniej aktywności TM?
             SolvePartialProblems partialProblems = obj as SolvePartialProblems;
 
             lock (lockObj)
@@ -256,7 +260,7 @@ namespace Components
         /// <summary>
         /// Aktualizuje informację o TM i CN. Sprawdza czy jest dla nich nowe zadanie i jeśli znajdzie, odsyła.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">Status TM/CN</param>
         /// <returns></returns>
         private MessageObject UpdateAndGiveData(MessageObject obj)
         {
@@ -345,7 +349,7 @@ namespace Components
         /// <summary>
         /// Dodawanie nowego problemu do listy.
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">Nowy problem</param>
         /// <returns></returns>
         private SolveRequestResponse RegisterNewProblem(MessageObject obj)
         {
@@ -458,7 +462,7 @@ namespace Components
         /// <summary>
         /// Rejestracja nowego Computational Node lub Task Manager
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">Informacje o nowym TM/CN</param>
         /// <returns></returns>
         private RegisterResponse RegisterNewNode(MessageObject obj)
         {

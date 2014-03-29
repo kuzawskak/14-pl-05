@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Components
 {
+    /// <summary>
+    /// Status problemu.
+    /// </summary>
     public enum ProblemStatus
     {
         New,
@@ -16,19 +19,56 @@ namespace Components
         Solved
     }
 
+    /// <summary>
+    /// Klasa reprezentująca problem w serwerze.
+    /// </summary>
     public class Problem
     {
         private static ulong lastId = 0;
 
+        /// <summary>
+        /// ID problemu.
+        /// </summary>
         public ulong Id { get; private set; }
-        public byte[] Data { get; private set; }    // base64 string | Data i SolutionData
-        public byte[] CommonData { get; private set; } // base64 string
+        
+        /// <summary>
+        /// Dane problemu. Po zakończeniu obliczeń - rozwiązanie.
+        /// </summary>
+        public byte[] Data { get; private set; }
+
+        /// <summary>
+        /// Common data.
+        /// </summary>
+        public byte[] CommonData { get; private set; }
+
+        /// <summary>
+        /// Timeout dla problemu.
+        /// </summary>
         public ulong? SolvingTimeout { get; private set; }
+
+        /// <summary>
+        /// Typ problemu.
+        /// </summary>
         public string ProblemType { get; private set; }
+
+        /// <summary>
+        /// Status problemu.
+        /// </summary>
         public ProblemStatus Status { get; set; }
+
+        /// <summary>
+        /// Podproblemy.
+        /// </summary>
         public List<PartialProblem> PartialProblems { get; private set; }
 
+        /// <summary>
+        /// Czy wystąpił timeout?
+        /// </summary>
         public bool TimeoutOccured { get; private set; }
+
+        /// <summary>
+        /// Czas obliczeń.
+        /// </summary>
         public ulong ComputationsTime { get; private set; }
 
         /// <summary>
@@ -93,7 +133,6 @@ namespace Components
 
                     if (pp != null)
                     {
-                        // TODO: które wątki skończyły pracę? NIE?
                         pp.PartialProblemStatus = s.Type == CommunicationXML.SolutionType.Partial ? 
                             PartialProblemStatus.Solved : pp.PartialProblemStatus;
 
