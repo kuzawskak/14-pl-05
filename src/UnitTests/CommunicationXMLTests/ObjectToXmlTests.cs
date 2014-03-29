@@ -18,8 +18,8 @@ namespace UnitTests.CommunicationXMLTests
             byte[] data;
 
             //Act
-            data = StringToBytesConverter.GetBytes(line);
-            result = StringToBytesConverter.GetString(data);
+            data = System.Text.Encoding.UTF8.GetBytes(line);
+            result = System.Text.Encoding.UTF8.GetString(data);
 
             //Assert
             Assert.IsTrue(line.Equals(result));
@@ -38,7 +38,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -69,7 +69,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -85,7 +85,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
 
         }
 
@@ -101,7 +101,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
             
         }
 
@@ -132,7 +132,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
 
         }
 
@@ -151,7 +151,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -169,7 +169,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -186,7 +186,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]
@@ -204,7 +204,7 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
     }

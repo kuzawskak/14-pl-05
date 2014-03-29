@@ -43,7 +43,6 @@
     <Compile Include="MessageObjects\MessageObject.cs" />
     <Compile Include="MessageObjects\SolutionRequest.cs" />
     <Compile Include="MessageObjects\PartialProblem.cs" />
-    <Compile Include="Parser\StringToBytesConverter.cs" />
     <Compile Include="Parser\XmlMessageSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MessageObjects\Register.cs" />
