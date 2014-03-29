@@ -18,6 +18,8 @@ namespace CommunicationXML
         /// <returns>Otrzymana tablica bajtów</returns>
         public static byte[] GetBytes(string stringToConvert)
         {
+            Console.WriteLine(stringToConvert);
+
             byte[] convertedBytes = new byte[stringToConvert.Length * sizeof(char)];
             System.Buffer.BlockCopy(stringToConvert.ToCharArray(), 0, convertedBytes, 0, convertedBytes.Length);
             return convertedBytes;
@@ -32,6 +34,9 @@ namespace CommunicationXML
         {
             char[] chars = new char[bytesToConvert.Length / sizeof(char)];
             System.Buffer.BlockCopy(bytesToConvert, 0, chars, 0, bytesToConvert.Length);
+
+            Console.WriteLine(chars);
+
             return new string(chars);
         }
     }

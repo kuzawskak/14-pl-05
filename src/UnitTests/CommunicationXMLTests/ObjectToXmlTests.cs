@@ -53,7 +53,8 @@ namespace UnitTests.CommunicationXMLTests
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(StringToBytesConverter.GetString(data));
+            //Debug.WriteLine(StringToBytesConverter.GetString(data));
+            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
         }
 
         [TestMethod]

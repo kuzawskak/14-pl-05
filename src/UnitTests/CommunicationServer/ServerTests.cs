@@ -38,7 +38,6 @@ namespace UnitTests.CommunicationServer
 
             Assert.IsNotNull(parser);
             Assert.AreEqual(parser.MessageType, MessageTypes.RegisterResponse);
-            //Assert.AreEqual((parser.Message as RegisterResponse).Id, (ulong)1);
 
             // first cli, trying to connect second time
             bytes = nc.Work(data);
@@ -49,7 +48,6 @@ namespace UnitTests.CommunicationServer
 
             Assert.IsNotNull(parser);
             Assert.AreEqual(parser.MessageType, MessageTypes.RegisterResponse);
-            //Assert.AreEqual((parser.Message as RegisterResponse).Id, (ulong)2);
 
             // second cli
             bytes = nc2.Work(data);
@@ -60,7 +58,6 @@ namespace UnitTests.CommunicationServer
 
             Assert.IsNotNull(parser);
             Assert.AreEqual(parser.MessageType, MessageTypes.RegisterResponse);
-           //Assert.AreEqual((parser.Message as RegisterResponse).Id, (ulong)3);
 
             srv.Stop();
             t.Wait();

@@ -19,7 +19,9 @@ namespace CommunicationXML
         /// <param name="data">Dane Xml jako tablica bajtów, które chcemy zmienić na obiekt jednego z typów pochodnych MessageObject</param>
         public XMLParser(byte [] data)
         {
-            xmlMessage = StringToBytesConverter.GetString(data);
+            //xmlMessage = StringToBytesConverter.GetString(data);
+            xmlMessage = System.Text.Encoding.UTF8.GetString(data);
+            System.Console.WriteLine(xmlMessage);
             object result;
 
             if(null != (result = TryDeserilize(typeof(Register))))
