@@ -21,6 +21,7 @@ namespace Components
         private List<TaskManager> taskManagers;
         private List<Problem> problems;
         private object lockObj;
+        private TimeSpan timeEps;
 
         private volatile bool working;
         private CancellationTokenSource backgroundToken;
@@ -44,6 +45,7 @@ namespace Components
             backgroundToken = new CancellationTokenSource();
 
             debug = new MessagePrinter(NodeName.CS);
+            timeEps = new TimeSpan(0, 0, 5);
         }
 
         /// <summary>
@@ -424,8 +426,8 @@ namespace Components
 
                 lock (lockObj)
                 {
-                    var cnl = computationalNodes.Where(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
-                    var tml = taskManagers.Where(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
+                    var cnl = computationalNodes.Where(x => x.LastTime.Ticks + timeEps.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
+                    var tml = taskManagers.Where(x => x.LastTime.Ticks + timeEps.Ticks < DateTime.Now.Ticks - timeout.Ticks).ToList();
 
                     foreach (var cn in cnl)
                     {
@@ -451,8 +453,8 @@ namespace Components
                             UpdateProblems(t);
                     }
                     
-                    computationalNodes.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
-                    taskManagers.RemoveAll(x => x.LastTime.Ticks < DateTime.Now.Ticks - timeout.Ticks);
+                    computationalNodes.RemoveAll(x => x.LastTime.Ticks + timeEps.Ticks < DateTime.Now.Ticks - timeout.Ticks);
+                    taskManagers.RemoveAll(x => x.LastTime.Ticks + timeEps.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }
 
                 debug.Print("Background cleanup. Nodes count: " + (computationalNodes.Count + taskManagers.Count));
