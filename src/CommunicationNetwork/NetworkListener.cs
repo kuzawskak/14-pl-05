@@ -32,7 +32,7 @@ namespace CommunicationNetwork
 
                 if (port < 0)
                     throw new Exception("Port value is invalid");
-                tcp = new TcpListener(IPAddress.Any, port);
+                tcp = new TcpListener(/*IPAddress.Parse("192.168.111.4")*/IPAddress.Any, port);
                 tcp.Start();
                 is_running = true;
 
