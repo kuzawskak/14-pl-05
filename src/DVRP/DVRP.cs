@@ -12,106 +12,47 @@ namespace DVRP
 {
     class DVRP : TaskSolver
     {
-        // Liczba ograniczeń pojemności - domyślnie 1 - waga
-        private int capacitiesCount;    // 1
-
-        // Ograniczenia dla pojazdów (domyślnie double[1] - waga). Definiuje ograniczenia dla wszystkich pojazdów. 
-        // Aby zdefiniować każdy osobno używamy vehicleCapacities
-        // Jeżeli jest podane, wypełniana jest tablica vehicleCapacities tą samą wartością
-        private double[] capacities;    // 2
+        // Ograniczenia dla pojazdów. Definiuje ograniczenia dla wszystkich pojazdów. 
+        private double capacities;  
 
         // Liczba pojazdów
-        private int vehiclesCount;      // 3
+        private int vehiclesCount;   
 
         // Liczba zajezdni
-        private int depotsCount;        // 4
+        private int depotsCount;   
 
         // Liczba miejsc do odwiedzenia (pickup and delivery points)
-        private int visitsCount;        // 5
+        private int visitsCount;     
 
         // Liczba lokacji (visitsCount + depotsCount)
-        private int locationsCount;     // 6
-
-        // Max czas pojedyńczego przejazdu.
-        private double maxTime;         // 7
+        private int locationsCount;    
 
         // Położenie lokacji (x, y). Używane gdy nie ma podanych wag krawędzi. (przeliczymy na wagi)
-        private System.Windows.Point[] locationsCoords;     // 8
+        private System.Windows.Point[] locationsCoords;  
 
         // "Numery wierzchołków" zajezdni
-        private int[] depots;           // 9
+        private int[] depots;    
 
         // Numery wierzchołków miejsc do odwiedzenia.
-        private int[] visits;           // 10
+        private int[] visits;        
 
         // Waga ładunku do odebrania/zostawienia w każdej lokacji. (ujemna = dostarczenie)
-        // Domyślnie int[1][] - tylko waga
-        private double[][] visitsWeight;    // 11
-
-        // Pojemności pojzadów - domyślnie int[1][] - tylko pojemność
-        private double[][] vehiclesCapacity;    // 12
+        private double[] visitsWeight;   
 
         // Wagi krawędzi
-        private double[,] weights;      // 13
-
-        // Czas otwarcia/zamknięcia miejsc do odwiedzenia <otwarcie, zamkniecie>
-        private Tuple<double, double>[][] timeWindows;  // 14
+        private double[,] weights;   
 
         // Czas otwarcia i zamknięcia zajezdni.
-        private Tuple<double, double>[] depotsTimeWindow;   // 15
-
-        // Czas dostępności pojazdów. null == cly czas
-        private Tuple<double, double>[][] vehiclesTimeWindow;   // 16
+        private Tuple<double, double>[] depotsTimeWindow;  
 
         // Czas kiedy wizyta będzie znana.
-        private double[] visitAvailableTime;        // 17
-
-        //---------------------------------------Mniej ważne :P
+        private double[] visitAvailableTime;   
 
         // Prędkość służąca do zmiany wag krawędzi w czas. Domyślnie 1.
-        // Jeżeli podana prędkość, to dla każdego pojazdu jest wpisywana do tablicy.
-        private double speed;       // 18
+        private double speed;    
 
-        // Prędkość każdego pojazdu.
-        // Jest mnożona z wagami
-        private double[] vehicleSpeed;   // 19
-
-        // Koszt użycia pojazdu (domyślnie 0).
-        private double[] vehicleUseCost;    // 20
-
-        // Koszt dystandu dla pojazdów (domyślnie 1).
-        private double[] vehicleDistanceCost;   // 21
-
-        // Koszt czasu podróży pojazdów (domyślnie 0).
-        private double[] vehicleTimeCost;       // 22
-
-        // Czas przebywania - domyślnie 0.
-        private double[] visitsDuration;        // 23
-
-        // Czas przebywania w lokacjach przez każdy z pojazdów. int[visitId][vehicleId]. null - nie ma
-        private double[][] durationByVehicle;   // 24
-
-        // Zajezdnia pojazdu. <czy istotna, idZajezdni>[idPojazdu]. null - nie istotne
-        private Tuple<bool, int>[] vehicleDepot;    // 25
-
-        //----------------------------------------
-
-        // Kolejność. <visit1, relacja, visit2, margines>. Wizyta 1 musi być przed wizytą 2, różnica musi być w relacji z marginesem. ????????
-        private Tuple<int, string, int, double>[/**/] order;    // 26
-
-        // Wizyty opcjonalne i koszt nieodwiedzenia. <id wizyty, koszt>
-        private Tuple<int, double>[/**/] optionalVisits;        // 27
-
-        // Wizyty muszą/nie mogą być obsłużone przez ten sam pojazd. <wizyta1, wizyta2, true - muszą, false - nie mogą.
-        private Tuple<int, int, bool>[/**/] visitCompat;        // 28
-
-        // Wyzyty które muszą być obsłużone z odpowiedniej zajezdni. <wizyta, zajezdnia, musi/nie może>
-        private Tuple<int, int, bool>[/**/] depotCompat;        // 29
-
-        // Wizyty muszą/nie mogą być obsłużone przez pojazdy. <wizyta, pojazd, musi/nie może>
-        private Tuple<int, int, bool>[/**/] vehicleCompat;      // 30
-
-        //---------------------------------------Pomocnicze (po podziale)
+        // Czas przebywania/rozładunku
+        private double[] visitsDuration;   
 
         //--------------------------------------
 
@@ -119,41 +60,22 @@ namespace DVRP
         {
         }
 
-        private DVRP(int[] _depots, int[] _visits, double[] _visitsWeight, double[] _vehiclesCapacity, double[,] _weights, Tuple<double, double>[][] _timeWindows, Tuple<double, double>[] _depotsTimeWindow, double[] _visitAvailableTime)
+        private DVRP(int _vehiclesCount, int[] _depots, int[] _visits, double[] _visitsWeight, double[] _visitsDuration, double _capacities, double[,] _weights, Tuple<double, double>[] _depotsTimeWindow, double[] _visitAvailableTime)
         {
-            capacitiesCount = 1;
-            capacities = null;
-            vehiclesCount = _vehiclesCapacity.Length;
+            capacities = _capacities;
+            vehiclesCount = _vehiclesCount;
             depotsCount = _depots.Length;
             visitsCount = _visits.Length;
             locationsCount = visitsCount + depotsCount;
-            maxTime = double.PositiveInfinity;
-            locationsCoords = null;
+            locationsCoords = null; // to bedzie parsowane!
             depots = _depots;
             visits = _visits;
-            visitsWeight = new double[capacitiesCount][];
-            visitsWeight[0] = _visitsWeight;
-            vehiclesCapacity = new double[capacitiesCount][];
-            vehiclesCapacity[0] = _vehiclesCapacity;
-            weights = _weights;
-            timeWindows = _timeWindows;
+            visitsWeight = _visitsWeight;
+            weights = _weights; // to bedzie obliczane
             depotsTimeWindow = _depotsTimeWindow;
-            vehiclesTimeWindow = null;
             visitAvailableTime = _visitAvailableTime;
-
             speed = 1;
-            vehicleSpeed = null;
-            vehicleUseCost = null; // 0
-            vehicleDistanceCost = null; // 1
-            vehicleTimeCost = null; // 0
-            visitsDuration = null; // 0
-            durationByVehicle = null;
-            vehicleDepot = null;
-            order = new Tuple<int, string, int, double>[0];
-            optionalVisits = new Tuple<int, double>[0];
-            visitCompat = new Tuple<int, int, bool>[0];
-            depotCompat = new Tuple<int, int, bool>[0];
-            vehicleCompat = new Tuple<int, int, bool>[0];
+            visitsDuration = _visitsDuration;
         }
 
         public override TaskSolver GetInstance()
@@ -166,15 +88,17 @@ namespace DVRP
             //return new DVRP();
 
             // Przykładowy problem.
-            const int visits = 20;
-            const int vehicles = 10;
+            const int visits = 50;
+            const int vehicles = 50;
             const int depots = 1;
 
             return new DVRP(
+                vehicles,
                 new int[depots] { 0 },
                 new int[visits] /*{ 1, 2, 3, 4, 5 }*/,
                 new double[visits] /*{ 10, 10, 10, 10, 10 }*/,
-                new double[vehicles] /*{ 20, 20, 20 }*/,
+                new double[visits],
+                100,
                 new double[visits + depots, visits + depots]
                 /*{
                     {5,2,4,7,3,5},
@@ -183,14 +107,6 @@ namespace DVRP
                     {4,5,4,6,3,3},
                     {3,2,4,5,3,2},
                     {4,3,5,4,2,2}
-                }*/,
-                new Tuple<double, double>[visits][]
-                /*{
-                    new Tuple<double, double>[1] { new Tuple<double, double>(0, double.PositiveInfinity) },
-                    new Tuple<double, double>[1] { new Tuple<double, double>(0, double.PositiveInfinity) },
-                    new Tuple<double, double>[1] { new Tuple<double, double>(0, double.PositiveInfinity) },
-                    new Tuple<double, double>[1] { new Tuple<double, double>(0, double.PositiveInfinity) },
-                    new Tuple<double, double>[1] { new Tuple<double, double>(0, double.PositiveInfinity) }
                 }*/,
                 new Tuple<double, double>[depots]
                 /*{
@@ -210,6 +126,23 @@ namespace DVRP
 
             // TODO -_-
 
+            /* Tablice na liście zawierają ilość wizyt dla konkretnych pojazdów.
+             * np zawartość { [3, 0, 0], [2, 1, 0] } oznacza, że testowane są dwie sytuacje:
+             *  - pierwsza: pojazd 1 musi odwiedzić 3 lokacje, pojazd 2 i 3 zero lokacji,
+             *  - druga: pojazd 1 odwiedza 2 lokacje, pojazd 2 jedną, pojazd 3 zero.
+             * lokacje oznaczają wizyty - zajezdnie nie są wliczone.
+             * 
+             * tablice nie zawierają opisu dla wszystkich pojazdów!!!
+             * Jeżeli jest np 10 pojazdów, a tablice są pięcioelementowe, oznacza to, że opisane jest tylko 5 pierwszych pojazdów -
+             * pozostałe należy sprawdzać w Solve.
+             * NP: dla 10 pojazdów i tablic 3 elementowych:
+             * { [9, 1, 0], [5, 1, 1], [0, 0, 0] }
+             * Oznacza 3 sytuacje do sprawdzenia:
+             *   1) pojazd 1 odwiedza 9 lokacji, pojazd 2 jedną, pojazd 3 zero. pozostałe 7 pojazdów nie odwiedza żadnej
+             *   2) pojazd 1 5 lokacji, pojazdy 2 i 3 po jednej, pozostałe 7 pojazdów 3 lokacje: należy sprawdzić wszystkie możliwości
+             *   UWAGA: Usunięcie duplikatów zmniejsza ilość rozwiązań do sprawdzenia (pojazdy nie są rozróżnialne: ciągi [1, 0] i [0, 1] są takie same!!!)
+             *   3) pojazd */
+
             return null;
         }
 
@@ -221,24 +154,22 @@ namespace DVRP
 
             List<int[]> list = new List<int[]>();
 
-            const int vehiclesLimit = 5;
+            //const int vehiclesLimit = 10;
 
-            if (vehiclesCount <= vehiclesLimit)
-            {
-                GenerateSets(visitsCount, vehiclesCount, list, visitsCount, 0, new int[vehiclesCount], false);
+            if (visitsCount <= 50)
+                GenerateSets(visitsCount, vehiclesCount, list, visitsCount, 0, new int[vehiclesCount], 0);
+            //else
+                //GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], true);
 
-                if (optionalVisits != null && optionalVisits.Length > 0)
-                {
-                    for (int i = visitsCount - 1; i >= visitsCount - optionalVisits.Length; --i)
-                        GenerateSets(i, vehiclesCount, list, i, 0, new int[vehiclesCount], false);
-                }
-            }
-            else
-            {
-                GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], true);
-            }
+            //RemoveInvalid(list, (vehiclesCount <= vehiclesLimit) ? vehiclesCount : vehiclesLimit);
 
-            RemoveInvalid(list, (vehiclesCount <= vehiclesLimit) ? vehiclesCount : vehiclesLimit);
+            Console.WriteLine(list.Count);
+            //foreach (int[] a in list)
+            //{
+            //    foreach (int i in a)
+            //        Console.Write(i + " ");
+            //    Console.WriteLine();
+            //}
 
             int tc = threadCount < list.Count ? threadCount : list.Count;
 
@@ -267,38 +198,11 @@ namespace DVRP
                 ret[i] = s.ToArray();
             }
 
-            //Console.WriteLine(list.Count);
-            //foreach (int[] a in list)
-            //{
-            //    foreach (int i in a)
-            //        Console.Write(i + " ");
-            //    Console.WriteLine();
-            //}
-
             return ret;
         }
 
         private void Initialize()
         {
-            if (vehicleSpeed == null)
-            {
-                vehicleSpeed = new double[vehiclesCount];
-                for (int i = 0; i < vehiclesCount; ++i)
-                    vehicleSpeed[i] = speed;
-            }
-
-            if (vehiclesCapacity == null)
-            {
-                vehiclesCapacity = new double[capacitiesCount][];
-                for (int i = 0; i < capacitiesCount; ++i)
-                {
-                    vehiclesCapacity[i] = new double[vehiclesCount];
-
-                    for (int j = 0; j < vehiclesCount; ++j)
-                        vehiclesCapacity[i][j] = capacities == null ? double.PositiveInfinity : capacities[j];
-                }
-            }
-
             if (weights == null)
             {
                 weights = new double[locationsCount, locationsCount];
@@ -316,22 +220,30 @@ namespace DVRP
             }
         }
 
-        private void GenerateSets(int n, int k, List<int[]> list, int left/* = -1*/, int i/* = 0*/, int[] tmp/* = null*/, bool isMore)
+        private void GenerateSets(int n, int k, List<int[]> list, int left, int i, int[] tmp, int more)
         {
+            //if (i != 0 && tmp[i - 1] < left)
+            //    return;
+
             if (i == k)
             {
-                if (isMore || left == 0)
+                if (/*isMore ||*/ left == 0 || tmp[i - 1] * more >= left)
                     list.Add((int[])tmp.Clone());
                 return;
             }
 
-            int put = left;
-            left = 0;
+            int put = (i == 0 || tmp[i-1] >= left) ? left : tmp[i - 1];
+            left = left - put;
+
 
             while (put >= 0)
             {
+                if (put == 0 && left != 0)
+                    return;
+
                 tmp[i] = put;
-                GenerateSets(n, k, list, left, i + 1, tmp, isMore);
+                //if(i == 0 || tmp[i-1] >= put)
+                    GenerateSets(n, k, list, left, i + 1, tmp, more);
                 put--;
                 left++;
             }
@@ -339,109 +251,11 @@ namespace DVRP
 
         private void RemoveInvalid(List<int[]> list, int v)
         {
-            Func<int, int, bool> cond12 = (int _i, int _j) =>
-            {
-                foreach (var c in vehiclesCapacity)
-                    if (c[_i] != c[_j])
-                        return false;
-                return true;
-            };
-
-            Func<int, int, bool> cond16 = (int _i, int _j) =>
-            {
-                if (vehiclesTimeWindow == null)
-                    return true;
-
-                if (vehiclesTimeWindow[_i] == null && vehiclesTimeWindow[_j] == null)
-                    return true;
-
-                if (vehiclesTimeWindow[_i] == null || vehiclesTimeWindow[_j] == null)
-                    return false;
-
-                if (vehiclesTimeWindow[_i].Length != vehiclesTimeWindow[_j].Length)
-                    return false;
-
-                for (int k = 0; k < vehiclesTimeWindow[_i].Length; ++k)
-                    if (vehiclesTimeWindow[_i][k].Item1 != vehiclesTimeWindow[_j][k].Item1 || vehiclesTimeWindow[_i][k].Item2 != vehiclesTimeWindow[_j][k].Item2)
-                        return false;
-
-                return true;
-            };
-
-            Func<int, int, bool> cond24 = (int _i, int _j) =>
-            {
-                if (durationByVehicle == null)
-                    return true;
-
-                foreach (var c in durationByVehicle)
-                    if (c[_i] != c[_j])
-                        return false;
-
-                return true;
-            };
-
-            Func<int, int, bool> cond25 = (int _i, int _j) =>
-            {
-                if (vehicleDepot == null)
-                    return true;
-
-                if (vehicleDepot[_i].Item1 == false && vehicleDepot[_j].Item1 == false)
-                    return true;
-
-                if (vehicleDepot[_i].Item1 == false || vehicleDepot[_j].Item1 == false)
-                    return false;
-
-                if (vehicleDepot[_i].Item2 != vehicleDepot[_j].Item2)
-                    return false;
-
-                return true;
-            };
-
-            Func<int, int, bool> cond30 = (int _i, int _j) =>
-            {
-                if (vehicleCompat == null)
-                    return true;
-
-                var lit = vehicleCompat.Where(x => x.Item2 == _i && x.Item3 == true).Select(x => x.Item1).ToList();
-                var ljt = vehicleCompat.Where(x => x.Item2 == _j && x.Item3 == true).Select(x => x.Item1).ToList();
-
-                if (lit.Count != ljt.Count)
-                    return false;
-
-                lit.Sort();
-                ljt.Sort();
-
-                if (!lit.SequenceEqual(ljt))
-                    return false;
-
-                var lif = vehicleCompat.Where(x => x.Item2 == _i && x.Item3 == false).Select(x => x.Item1).ToList();
-                var ljf = vehicleCompat.Where(x => x.Item2 == _j && x.Item3 == false).Select(x => x.Item1).ToList();
-
-                if (lif.Count != ljf.Count)
-                    return false;
-
-                ljf.Sort();
-                lif.Sort();
-
-                if (!lif.SequenceEqual(ljf))
-                    return false;
-
-                return true;
-            };
-
             for (int i = 0; i < v; ++i)
             {
                 for (int j = i + 1; j < v; ++j)
                 {
-                    if (cond12(i, j) && cond16(i, j) &&
-                        vehicleSpeed[i] == vehicleSpeed[j] &&
-                        (vehicleUseCost == null || vehicleUseCost[i] == vehicleUseCost[j]) &&
-                        (vehicleTimeCost == null || vehicleTimeCost[i] == vehicleTimeCost[j]) &&
-                        (vehicleDistanceCost == null || vehicleDistanceCost[i] == vehicleDistanceCost[j]) &&
-                        cond24(i, j) && cond25(i, j) && cond30(i, j))
-                    {
-                        RemovePair(i, j, list, v);
-                    }
+                    RemovePair(i, j, list, v);
                 }
             }
         }
@@ -490,27 +304,6 @@ namespace DVRP
 
             list.Clear();
             list.AddRange(newlist);
-
-            //List<int[]> tmp = new List<int[]>(list);
-
-            //foreach (var c in tmp)
-            //{
-            //    if (c[i] != c[j] && list.Contains(c))
-            //    {
-            //        list.RemoveAll(x =>
-            //            {
-            //                if (x[i] == c[j] && x[j] == c[i])
-            //                {
-            //                    for (int k = 0; k < v; ++k)
-            //                        if (k != i && k != j && x[k] != c[k])
-            //                            return false;
-
-            //                    return true;
-            //                }
-            //                return false;
-            //            });
-            //    }
-            //}
         }
 
         //--------------------------------------Merge
