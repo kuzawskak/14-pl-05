@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace DVRP
 {
-    public enum EdgeWeightTypeEnum { FULL_MATRIX, LOWER_TRIANG,ADJ }
-    public enum EdgeWeightFormatEnum { EUC_2D, MAN_2D, MAX_2D, EXPLICIT }
+    public enum EdgeWeightTypeEnum { EUC_2D, MAN_2D, MAX_2D, EXPLICIT }
+    public enum EdgeWeightFormatEnum { FULL_MATRIX, LOWER_TRIANG, ADJ }
     public enum ObjectiveEnum {VEH_WEIGHT,WEIGHT,MIN_MAX_LEN}
     public enum OrderEnum {GT,GE,LT,LE,EQ}
     public enum FileSection { DEMAND, TIME_WINDOW, DURATION, LOCATION_COORD, DEPOT_LOCATION, VISIT_LOCATION, EDGE_WEIGHT, OTHER }
@@ -228,7 +228,9 @@ namespace DVRP
                         EdgeWeights = new double[this.NumLocations,this.NumLocations];
                         line_count = 0;
                         break;
-
+                    case "EOF":
+                        CurrSect = FileSection.OTHER;
+                        break;
                     //TODO: uwzglednic pozostale pola ktore nie sa uwzglednione w probnym pliku
 
                     default: //numbers in line
@@ -239,10 +241,10 @@ namespace DVRP
                                     VisitQuantity[Int32.Parse(items[0])-1] = Int32.Parse(items[1]);
                                     break;
                                 case FileSection.TIME_WINDOW:
-                                    TimeWindow[Int32.Parse(items[0])-1]= new Tuple<double,double>(Double.Parse(items[1]),Double.Parse(items[2]));                         
+                                    TimeWindow[Int32.Parse(items[0]) - 1] = new Tuple<double, double>(Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint), Double.Parse(items[2], System.Globalization.NumberStyles.AllowDecimalPoint));                         
                                     break;
                                 case FileSection.DURATION:
-                                    VisitsDuration[Int32.Parse(items[0]) - 1] = Double.Parse(items[1]);
+                                    VisitsDuration[Int32.Parse(items[0]) - 1] = Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
                                     break;
                                 case FileSection.LOCATION_COORD:
                                     LocationIds[line_count] = Int32.Parse(items[0]);
@@ -250,8 +252,9 @@ namespace DVRP
                                     line_count++;
                                     break;
                                 case FileSection.DEPOT_LOCATION:
-                                    DepotsLocation[line_count][0] = Double.Parse(items[0]);
-                                    DepotsLocation[line_count][1] = Double.Parse(items[1]);
+                                    DepotsLocation[line_count] = new Double[2];
+                                    DepotsLocation[line_count][0] = Double.Parse(items[0]);//, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
+                                    DepotsLocation[line_count][1] = Double.Parse(items[1]);//, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
                                     line_count++;
                                     break;
                                 case FileSection.VISIT_LOCATION:
@@ -259,11 +262,12 @@ namespace DVRP
                                     break;
                                 case FileSection.EDGE_WEIGHT:
                                     items = line.Split(' ');
-                                    this.Depots = new int[items.Count()];
+                                 
                                  
                                     int k = 0;
                                     foreach(string s in items)
                                     {
+                                        if(s!="")
                                         EdgeWeights[line_count,k++]= Int32.Parse(s);
                                     }
                                     line_count++;
@@ -276,7 +280,7 @@ namespace DVRP
 
                 }
             }
-
+            //check
         }
     }
 }
