@@ -9,108 +9,109 @@ namespace DVRP
 {
     public enum EdgeWeightTypeEnum { EUC_2D, MAN_2D, MAX_2D, EXPLICIT }
     public enum EdgeWeightFormatEnum { FULL_MATRIX, LOWER_TRIANG, ADJ }
-    public enum ObjectiveEnum {VEH_WEIGHT,WEIGHT,MIN_MAX_LEN}
-    public enum OrderEnum {GT,GE,LT,LE,EQ}
+    public enum ObjectiveEnum { VEH_WEIGHT, WEIGHT, MIN_MAX_LEN }
+    public enum OrderEnum { GT, GE, LT, LE, EQ }
     public enum FileSection { DEMAND, TIME_WINDOW, DURATION, LOCATION_COORD, DEPOT_LOCATION, VISIT_LOCATION, EDGE_WEIGHT, OTHER }
 
     class TestFileParser
     {
-        
+
         private FileSection CurrSect = FileSection.OTHER;
-       // List<double> temporary_double_val = new List<double>();
+        // List<double> temporary_double_val = new List<double>();
 
         //reprezentacja sekcji pliku testowego
         //w nawiasach kwadratowych (komentarze) sa wartosci domyslne
 
         //NUM_DEPOTS:
-        public int NumDepots { get; private set;}
+        public int NumDepots { get; private set; }
 
         //NUM_CAPACITIES: [1]
-        public int NumCapacities { get; private set; }
+        public int NumCapacities { get; private set; } // teoretycznie można pominąć, ale w plikach jest
 
         //NUM_VISITS:
-        public int NumVisits {  get; private set; }
+        public int NumVisits { get; private set; }
 
         //NUM_VEHICLES:
-        public int NumVehicles {  get; private set; }
+        public int NumVehicles { get; private set; }
 
         //NUM_LOCATIONS:
-        public int NumLocations {  get; private set; }
+        public int NumLocations { get; private set; }
 
         //CAPACITIES:
-        public double Capacities {  get; private set; }
+        public double Capacities { get; private set; }
 
         //SPEED: [1.0]
-        public float Speed {  get; private set; }
+        public float Speed { get; private set; } // w plikach nigdzie nie ma, ale chyba trzeba parsować
 
         //MAX_TIME: [inf]
-        public double MaxTime {  get; private set; }
+        //public double MaxTime { get; private set; }
 
         //EDGE_WEIGHT_TYPE:
-        public EdgeWeightTypeEnum EdgeWeightType {  get; private set; }
+        public EdgeWeightTypeEnum EdgeWeightType { get; private set; } // chyba będzie zawsze 1, ale niech zostanie na wszelki wypadek
 
         //EDGE_WEIGHT_FORMAT:
-        public EdgeWeightFormatEnum EdgeWeightFormat {  get; private set; }
+        public EdgeWeightFormatEnum EdgeWeightFormat { get; private set; } // j.w.
 
         //OBJECTIVE: [WEIGHT]
-        public ObjectiveEnum Objective {  get; private set; }
+        public ObjectiveEnum Objective { get; private set; } // chyba nie będzie, ale niech zostanie ;)
 
-        
+
         //DEPOTS 
-        public int[] Depots {  get; private set; }
+        public int[] Depots { get; private set; }
 
         //DEMAND_SECTION
-        public double[] VisitQuantity {  get; private set; }
+        public int[] Visits { get; private set; }
+        public Dictionary<int, double> VisitQuantity { get; private set; }
 
 
         //LOCATION_COORD_SECTION
-        public int[] LocationIds {  get; private set; }
-        public System.Windows.Point[] LocationsCoords {  get; private set; }
+        public int[] LocationIds { get; private set; }
+        public Dictionary<int, System.Windows.Point> LocationsCoords { get; private set; }
 
         //VISIT_LOCATION_SECTION
-        public int[] VisitLocations {  get; private set; }
+        public Dictionary<int, int> VisitLocations { get; private set; }
 
         //DEPOT_LOCATION_SECTION
-        public double[][] DepotsLocation {  get; private set; }
+        public Dictionary<int,int> DepotsLocation { get; private set; }
 
         //EDGE_WEIGHT_SECTION
-        public double[,] EdgeWeights {  get; private set; }
+        public double[,] EdgeWeights { get; private set; } 
 
         //VEH_COMPAT_SECTION
-        public Tuple<int, int, bool>[] VehCompat {  get; private set; }
+        //public Tuple<int, int, bool>[] VehCompat { get; private set; }
 
         //UWAGA: to parametr string został zmieniony na ENUM z porownaniu do order z DVRP.cs
         //ORDER_SECTION
-        public Tuple<int, OrderEnum, int, double>[] VehOrder {  get; private set; }
+       // public Tuple<int, OrderEnum, int, double>[] VehOrder { get; private set; }
 
         //VEHICLE_CAPACITY_SECTION 
-        public double[] VehicleCapacity {  get; private set; }
+        //public double[] VehicleCapacity { get; private set; }
 
         //VEHICLE_SPEED_SECTION 
-        public double[] VehicleSpeed {  get; private set; }
+        //public double[] VehicleSpeed { get; private set; }
 
         //VEHICLE_COST_SECTION 
-        public double[] VehicleDistanceCost {  get; private set; }
-        public double[] VehicleUseCost {  get; private set; }
-        public double[] VehicleTimeCost {  get; private set; }
+        //public double[] VehicleDistanceCost { get; private set; }
+        //public double[] VehicleUseCost { get; private set; }
+        //public double[] VehicleTimeCost { get; private set; }
 
         //TIME_WINDOW_SECTION 
-        public Tuple<double, double>[] TimeWindow {  get; private set; }
+        //public Tuple<double, double>[] TimeWindow { get; private set; }
 
         //DEPOT_TIME_WINDOW_SECTION
-        public Tuple<double, double>[] DepotsTimeWindow {  get; private set; }
+        public Dictionary<int, Tuple<double, double>> DepotsTimeWindow { get; private set; } // to trzeba parsować
 
         //VEH_TIME_WINDOW_SECTION
 
         //DURATION_SECTION
-        public double[] VisitsDuration {  get; private set; }
+        public Dictionary<int, double> VisitsDuration { get; private set; }
 
         //TIME_AVAIL_SECTION 
-        public double[] TimeAvail {  get; private set; }
+        public Dictionary<int, double> TimeAvail { get; private set; } // to trzeba parsować
 
         //DURATION_BY_VEH_SECTION 
-        public double[][] DurationByVeh {  get; private set; }
-        
+        //public double[][] DurationByVeh { get; private set; }
+
         //VISIT_COMPAT_SECTION 
 
         //DEPOT_COMPAT_SECTION 
@@ -120,18 +121,18 @@ namespace DVRP
         //?
 
         //OPTIONAL_VISIT_SECTION 
-        public Tuple<int, double>[] OptionalVisits {  get; private set; }
+        //public Tuple<int, double>[] OptionalVisits { get; private set; }
 
         //VISIT_AVAIL_SECTION 
-        public double[] VisitAvailTime {  get; private set; }
+        //public double[] VisitAvailTime { get; private set; }
 
         /// <summary>
         /// Sets default values
         /// </summary>
         public TestFileParser()
         {
-           this.NumDepots = 1;
-           this.NumCapacities = 1;
+            this.NumDepots = 1;
+            this.NumCapacities = 1;
 
 
         }
@@ -177,10 +178,10 @@ namespace DVRP
                         CurrSect = FileSection.OTHER;
                         this.EdgeWeightFormat = (EdgeWeightFormatEnum)Enum.Parse(typeof(EdgeWeightFormatEnum), items[1]);
                         break;
-                    case "MAX_TIME:":
-                        CurrSect = FileSection.OTHER;
-                        this.MaxTime = Int32.Parse(items[1]);
-                        break;
+                    //case "MAX_TIME:":
+                    //    CurrSect = FileSection.OTHER;
+                    //    this.MaxTime = Int32.Parse(items[1]);
+                    //    break;
                     case "CAPACITIES:":
                         CurrSect = FileSection.OTHER;
                         this.Capacities = Double.Parse(items[1]);
@@ -191,41 +192,43 @@ namespace DVRP
                         items = line.Split(' ');
                         this.Depots = new int[items.Count()];
                         int i = 0;
-                        foreach(string s in items)
+                        foreach (string s in items)
                         {
                             this.Depots[i++] = Int32.Parse(s);
                         }
                         break;
                     case "DEMAND_SECTION":
                         CurrSect = FileSection.DEMAND;
-                        this.VisitQuantity = new double[this.NumVisits];
+                        this.VisitQuantity = new Dictionary<int, double>(NumVisits);
+                        line_count = 0;
                         break;
-                    case "TIME_WINDOW_SECTION":
-                        CurrSect = FileSection.TIME_WINDOW;
-                        this.TimeWindow = new Tuple<double, double>[this.NumVisits];                    
-                        break;
+                    //case "TIME_WINDOW_SECTION":
+                    //    CurrSect = FileSection.TIME_WINDOW;
+                    //    this.TimeWindow = new Tuple<double, double>[this.NumVisits];
+                    //    break;
                     case "DURATION_SECTION":
                         CurrSect = FileSection.DURATION;
-                        this.VisitsDuration = new double[this.NumVisits];
+                        line_count = 0;
+                        this.VisitsDuration = new Dictionary<int, double>(NumVisits);
                         break;
                     case "LOCATION_COORD_SECTION":
                         CurrSect = FileSection.LOCATION_COORD;
                         line_count = 0;
                         this.LocationIds = new int[this.NumLocations];
-                        this.LocationsCoords = new System.Windows.Point[this.NumLocations];                        
+                        this.LocationsCoords = new Dictionary<int, System.Windows.Point>(NumLocations);
                         break;
                     case "DEPOT_LOCATION_SECTION":
                         CurrSect = FileSection.DEPOT_LOCATION;
                         line_count = 0;
-                        this.DepotsLocation = new double[this.Depots.Count()][];                       
+                        this.DepotsLocation = new Dictionary<int, int>(NumDepots);
                         break;
                     case "VISIT_LOCATION_SECTION":
                         CurrSect = FileSection.VISIT_LOCATION;
-                        this.VisitLocations = new int[this.NumVisits];
+                        this.VisitLocations = new Dictionary<int, int>(NumVisits);
                         break;
                     case "EDGE_WEIGHT_SECTION":
                         CurrSect = FileSection.EDGE_WEIGHT;
-                        EdgeWeights = new double[this.NumLocations,this.NumLocations];
+                        EdgeWeights = new double[this.NumLocations, this.NumLocations];
                         line_count = 0;
                         break;
                     case "EOF":
@@ -238,40 +241,39 @@ namespace DVRP
                             switch (CurrSect)
                             {
                                 case FileSection.DEMAND:
-                                    VisitQuantity[Int32.Parse(items[0])-1] = Int32.Parse(items[1]);
+                                    VisitQuantity.Add(Int32.Parse(items[0]), Int32.Parse(items[1]));
+                                    Visits[line_count] = Int32.Parse(items[0]);
+                                    line_count++;
                                     break;
-                                case FileSection.TIME_WINDOW:
-                                    TimeWindow[Int32.Parse(items[0]) - 1] = new Tuple<double, double>(Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint), Double.Parse(items[2], System.Globalization.NumberStyles.AllowDecimalPoint));                         
-                                    break;
+                                //case FileSection.TIME_WINDOW:
+                                //    TimeWindow[Int32.Parse(items[0]) - 1] = new Tuple<double, double>(Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint), Double.Parse(items[2], System.Globalization.NumberStyles.AllowDecimalPoint));
+                                //    break;
                                 case FileSection.DURATION:
-                                    VisitsDuration[Int32.Parse(items[0]) - 1] = Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
+                                    VisitsDuration.Add(Int32.Parse(items[0]), Double.Parse(items[1], System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo));
                                     break;
                                 case FileSection.LOCATION_COORD:
                                     LocationIds[line_count] = Int32.Parse(items[0]);
-                                    LocationsCoords[line_count] = new System.Windows.Point(Int32.Parse(items[1]),Int32.Parse(items[2]));
+                                    LocationsCoords.Add(Int32.Parse(items[0]), new System.Windows.Point(Int32.Parse(items[1]), Int32.Parse(items[2])));
                                     line_count++;
                                     break;
                                 case FileSection.DEPOT_LOCATION:
-                                    DepotsLocation[line_count] = new Double[2];
-                                    DepotsLocation[line_count][0] = Double.Parse(items[0]);//, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                    DepotsLocation[line_count][1] = Double.Parse(items[1]);//, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
-                                    line_count++;
+                                    DepotsLocation.Add(Int32.Parse(items[0]), Int32.Parse(items[1]));
                                     break;
                                 case FileSection.VISIT_LOCATION:
-                                    VisitLocations[Int32.Parse(items[0]) - 1] = Int32.Parse(items[1]);
+                                    VisitLocations.Add(Int32.Parse(items[0]), Int32.Parse(items[1]));
                                     break;
                                 case FileSection.EDGE_WEIGHT:
                                     items = line.Split(' ');
-                                 
-                                 
+
+
                                     int k = 0;
-                                    foreach(string s in items)
+                                    foreach (string s in items)
                                     {
-                                        if(s!="")
-                                        EdgeWeights[line_count,k++]= Int32.Parse(s);
+                                        if (s != "")
+                                            EdgeWeights[line_count, k++] = Int32.Parse(s);
                                     }
                                     line_count++;
-                                     break;
+                                    break;
 
                             }
                         }
