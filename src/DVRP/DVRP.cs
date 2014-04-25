@@ -88,8 +88,8 @@ namespace DVRP
             //return new DVRP();
 
             // Przykładowy problem.
-            const int visits = 50;
-            const int vehicles = 50;
+            const int visits = 40;
+            const int vehicles = 40;
             const int depots = 1;
 
             return new DVRP(
@@ -135,13 +135,20 @@ namespace DVRP
              * tablice nie zawierają opisu dla wszystkich pojazdów!!!
              * Jeżeli jest np 10 pojazdów, a tablice są pięcioelementowe, oznacza to, że opisane jest tylko 5 pierwszych pojazdów -
              * pozostałe należy sprawdzać w Solve.
-             * NP: dla 10 pojazdów i tablic 3 elementowych:
-             * { [9, 1, 0], [5, 1, 1], [0, 0, 0] }
+             * NP: dla 10 pojazdów, 10 lokacji i tablic 3 elementowych:
+             * { [9, 1, 0], [5, 1, 1], [2, 2, 2] }
              * Oznacza 3 sytuacje do sprawdzenia:
              *   1) pojazd 1 odwiedza 9 lokacji, pojazd 2 jedną, pojazd 3 zero. pozostałe 7 pojazdów nie odwiedza żadnej
-             *   2) pojazd 1 5 lokacji, pojazdy 2 i 3 po jednej, pozostałe 7 pojazdów 3 lokacje: należy sprawdzić wszystkie możliwości
-             *   UWAGA: Usunięcie duplikatów zmniejsza ilość rozwiązań do sprawdzenia (pojazdy nie są rozróżnialne: ciągi [1, 0] i [0, 1] są takie same!!!)
-             *   3) pojazd */
+             *   2) pojazd 1 5 lokacji, pojazdy 2 i 3 po jednej, pozostałe 7 pojazdów 3 lokacje: wynikowa tablica do sprawdzenia: [5, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+             *   3) pojazdy 1,2,3 odwiedzają po 2 lokacje, pozostałe 4 lokacje muszą być sprawdzone przez pozostałe pojazdy, 
+             *      wszystkie możliwości do sprawdzenia w Solve:
+             *      [2, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+             *      [2, 2, 2, 2, 1, 1, 0, 0, 0, 0]
+             *      [2, 2, 2, 1, 1, 1, 1, 0, 0, 0]
+             *      
+             * Wygenerowane tablice (i dalsze części do wygenerowania) to rozkład liczby lokacji do odwiedzenia na składniki.
+             * Tablice mogą być wygenerowane do końca w Divide lub należy je generować jeszcze w Solve: trzeba sprawdzić przed rozpoczęciem!
+             */
 
             return null;
         }
@@ -154,22 +161,26 @@ namespace DVRP
 
             List<int[]> list = new List<int[]>();
 
-            //const int vehiclesLimit = 10;
+            //int vehiclesLimit = 10;// - (visitsCount - 50);
 
-            if (visitsCount <= 50)
+            if (visitsCount <= 40)
                 GenerateSets(visitsCount, vehiclesCount, list, visitsCount, 0, new int[vehiclesCount], 0);
-            //else
-                //GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], true);
+            else
+            {
+                int w = visitsCount <= 60 ? 4 : (visitsCount <= 100 ? 3 : 2);
+                int vehiclesLimit = vehiclesCount <= w ? vehiclesCount : w;
+                GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], vehiclesCount - vehiclesLimit);
+            }
 
             //RemoveInvalid(list, (vehiclesCount <= vehiclesLimit) ? vehiclesCount : vehiclesLimit);
 
-            Console.WriteLine(list.Count);
-            //foreach (int[] a in list)
-            //{
-            //    foreach (int i in a)
-            //        Console.Write(i + " ");
-            //    Console.WriteLine();
-            //}
+            //Console.WriteLine(list.Count);
+            ////foreach (int[] a in list)
+            ////{
+            ////    foreach (int i in a)
+            ////        Console.Write(i + " ");
+            ////    Console.WriteLine();
+            ////}
 
             int tc = threadCount < list.Count ? threadCount : list.Count;
 
@@ -185,7 +196,7 @@ namespace DVRP
                 int x = rand.Next(list.Count);
                 r[n].Add(list[x]);
                 list.RemoveAt(x);
-                n++;
+                ++n;
                 if (n == tc)
                     n = 0;
             }
@@ -249,62 +260,62 @@ namespace DVRP
             }
         }
 
-        private void RemoveInvalid(List<int[]> list, int v)
-        {
-            for (int i = 0; i < v; ++i)
-            {
-                for (int j = i + 1; j < v; ++j)
-                {
-                    RemovePair(i, j, list, v);
-                }
-            }
-        }
+        //private void RemoveInvalid(List<int[]> list, int v)
+        //{
+        //    for (int i = 0; i < v; ++i)
+        //    {
+        //        for (int j = i + 1; j < v; ++j)
+        //        {
+        //            RemovePair(i, j, list, v);
+        //        }
+        //    }
+        //}
 
-        private void RemovePair(int i, int j, List<int[]> list, int v)
-        {
-            bool[] deleted = new bool[list.Count];
+        //private void RemovePair(int i, int j, List<int[]> list, int v)
+        //{
+        //    bool[] deleted = new bool[list.Count];
 
-            int count = list.Count;
-            for (int k = 0; k < count; ++k)
-            {
-                int ki = list[k][i];
-                int kj = list[k][j];
+        //    int count = list.Count;
+        //    for (int k = 0; k < count; ++k)
+        //    {
+        //        int ki = list[k][i];
+        //        int kj = list[k][j];
 
-                if (!deleted[k] && ki != kj)
-                {
-                    for (int z = k + 1; z < count; ++z)
-                    {
-                        if (!deleted[z] && ki == list[z][j] && kj == list[z][i])
-                        {
-                            bool dif = false;
+        //        if (!deleted[k] && ki != kj)
+        //        {
+        //            for (int z = k + 1; z < count; ++z)
+        //            {
+        //                if (!deleted[z] && ki == list[z][j] && kj == list[z][i])
+        //                {
+        //                    bool dif = false;
 
-                            for (int y = 0; y < v; ++y)
-                            {
-                                if (y != i && y != j && list[k][y] != list[z][y])
-                                {
-                                    dif = true;
-                                    break;
-                                }
-                            }
+        //                    for (int y = 0; y < v; ++y)
+        //                    {
+        //                        if (y != i && y != j && list[k][y] != list[z][y])
+        //                        {
+        //                            dif = true;
+        //                            break;
+        //                        }
+        //                    }
 
-                            if (!dif)
-                            {
-                                deleted[z] = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+        //                    if (!dif)
+        //                    {
+        //                        deleted[z] = true;
+        //                        break;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
 
-            List<int[]> newlist = new List<int[]>();
-            for (int k = 0; k < list.Count; ++k)
-                if (!deleted[k])
-                    newlist.Add(list[k]);
+        //    List<int[]> newlist = new List<int[]>();
+        //    for (int k = 0; k < list.Count; ++k)
+        //        if (!deleted[k])
+        //            newlist.Add(list[k]);
 
-            list.Clear();
-            list.AddRange(newlist);
-        }
+        //    list.Clear();
+        //    list.AddRange(newlist);
+        //}
 
         //--------------------------------------Merge
 
