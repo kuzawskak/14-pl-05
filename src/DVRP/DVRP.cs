@@ -151,18 +151,53 @@ namespace DVRP
              */
 
             List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited = null;
+
+            /*foreach [x,y] in list:
+
+  foreach depot in depots: // vehicle 1
+    foreach depot in depots: // vehicle 2
+
+      foreach L1 in (x from free_visits): // vehicle 1
+        foreach L2 in (y form free_visits): // vehicle 2
+         
+          foreach permutation1 in L1:
+            foreach permutation2 in L2:
+
+              check()
+             */
+            // dla ulatwiena demo zakladamy ze mamy 2 pociagi
             foreach (int[] div in list) {
-                
+                /*
                 SplitLocations(div, out splited);
                 if (splited != null) {
                     
                 }
                 splited = null;
+                 * */
+                /*
+                foreach depot in depots: // vehicle 1
+                    foreach depot in depots: // vehicle 2
+                 * */
+                Brute(0, vehiclesCount, new int[vehiclesCount]);
             }
 
 
             return null;
         }
+
+        void Brute(int num, int num_veh, int[] combinations) {
+            if (num > num_veh) {
+                // etap 2 (wybor punktow)
+                return;
+            }
+
+            foreach (int d in depots) {
+                combinations[num] = d;
+                Brute(num + 1, num_veh, combinations);
+            }
+        }
+
+
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
