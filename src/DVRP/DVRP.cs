@@ -150,7 +150,59 @@ namespace DVRP
              * Tablice mogą być wygenerowane do końca w Divide lub należy je generować jeszcze w Solve: trzeba sprawdzić przed rozpoczęciem!
              */
 
+            List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited = null;
+            foreach (int[] div in list) {
+                
+                SplitLocations(div, out splited);
+                if (splited != null) {
+                    
+                }
+                splited = null;
+            }
+
+
             return null;
+        }
+
+        //--------------------------------------FTSTPFS capitan (-:
+        // cos musi z czasem jescze byc dodane pewnie
+        void FTSPFS(byte v, byte[] to_visit, bool[] vis, byte visited, double len, ref double min_len, byte[] cycle) {
+            if (len > min_len)
+                return;
+            if (visited == to_visit.Length) {
+                // dodaj nowy najlepszy cykl
+                if (min_len > len)
+                    min_len = len;
+                return;
+            }
+
+            // dla kazdego sasiada
+            foreach (byte w in to_visit) {
+                if (!vis[w]) {
+                    vis[w] = true;
+                    cycle[visited] = w;
+                    FTSPFS(w, to_visit, vis, (byte)(visited + 1), len + weights[v, w], ref min_len, cycle); 
+                    vis[w] = false;
+                }
+            }
+        }
+
+
+        // ------------------------------- parametry
+        bool IsValid() {
+            return true;
+        }
+
+        // ---------------------------- odpowiedzialna za przydzial lokacji, przerobic ze wzgedu na chujowow implementacje
+        // sposob dzialania: [3, 1, 2]
+        // splited[0] = wszystkie podzialy dla 3, splited[1] = wszystkie podzaily dla 1, splited[2] = wszystkie podzialy dla 2
+        // wiec trzeb abedzie potem sprawdzac, czy sa wzajemnie pelne, ja pierdole
+        void SplitLocations(int[] div, out List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited) {
+            splited = new List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>>();
+            foreach(int d in div) {
+                var res = Combination.Combinations(visits, d);
+                splited.Add(res);
+            }
         }
 
         //--------------------------------------Divide
