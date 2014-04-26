@@ -54,6 +54,12 @@ namespace DVRP
         // Czas przebywania/rozładunku
         private double[] visitsDuration;   
 
+        // najlepszy cykl
+        private int[][] cycles;
+
+        // koszt najmniejszej sciezki
+        private double min_cost;
+
         //--------------------------------------
 
         private DVRP()
@@ -76,6 +82,8 @@ namespace DVRP
             visitAvailableTime = _visitAvailableTime;
             speed = 1;
             visitsDuration = _visitsDuration;
+            cycles = null;
+            min_cost = Double.MaxValue;
         }
 
         public override TaskSolver GetInstance()
@@ -150,37 +158,9 @@ namespace DVRP
              * Tablice mogą być wygenerowane do końca w Divide lub należy je generować jeszcze w Solve: trzeba sprawdzić przed rozpoczęciem!
              */
 
-            List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited = null;
-
-            /*foreach [x,y] in list:
-
-  foreach depot in depots: // vehicle 1
-    foreach depot in depots: // vehicle 2
-
-      foreach L1 in (x from free_visits): // vehicle 1
-        foreach L2 in (y form free_visits): // vehicle 2
-         
-          foreach permutation1 in L1:
-            foreach permutation2 in L2:
-
-              check()
-             */
-            // dla ulatwiena demo zakladamy ze mamy 2 pociagi
             foreach (int[] div in list) {
-                /*
-                SplitLocations(div, out splited);
-                if (splited != null) {
-                    
-                }
-                splited = null;
-                 * */
-                /*
-                foreach depot in depots: // vehicle 1
-                    foreach depot in depots: // vehicle 2
-                 * */
                 Brute(0, vehiclesCount, new int[vehiclesCount], div);
             }
-
 
             return null;
         }
@@ -192,26 +172,31 @@ namespace DVRP
             for(int i = 0; i < vehiclesCount; ++i)
                 splits[i] = new int[div[i]];
             // wywolanie dla kazdego 
-            ForEachTrain(0, vehiclesCount, new bool[visitsCount], splits, div);
+            ForEachTrain(0, vehiclesCount, new bool[visitsCount], splits, div, combinations);
         }
 
-        void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div) {
+        void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div, int[] combinations) {
             // jak wszystkie sie podzielily, to licz tsp
             if(veh >= num_veh) {
-                //etap3(przydzialy);
+                // wynik z algo
+                Tuple<double, int[][]> ret = TSPWrapper(combinations, splits);
+                if (ret.Item1 < min_cost) {
+                    min_cost = ret.Item1;
+                    cycles = (int [][])ret.Item2.Clone();
+                }
                 return;
             }
             // jak nie, to dziel
-            OneLocation(0, div[veh], visitsCount, 0, splits, veh, free_visits, div);
+            OneLocation(0, div[veh], visitsCount, 0, splits, veh, free_visits, div, combinations);
         }
 
         // visit - numer wizyty dla danego pojazdu, veh_visits - powinienien odwiedziec lokacji, num_visits - musi byc 
         // odwiedzono lokacji sumarycznie,
         // start - poczatek sprawdzania, veh - numer pojazdu, free_visits - tablica dostepnosci punktow
-        void OneLocation(int visit, int veh_visits, int num_visits, int start, int[][] splits, int veh, bool[] free_visits, int[]div) {
+        void OneLocation(int visit, int veh_visits, int num_visits, int start, int[][] splits, int veh, bool[] free_visits, int[]div, int[] combinations) {
             // jezeli przydzielil swoje, to dziel dla nastepnego
             if(visit >= veh_visits) {
-                ForEachTrain(veh + 1, vehiclesCount, free_visits, splits, div);
+                ForEachTrain(veh + 1, vehiclesCount, free_visits, splits, div, combinations);
                 return;
             }
  
@@ -224,7 +209,7 @@ namespace DVRP
                 free_visits[i] = true;
                 
                 // kolejny punkt
-                OneLocation(visit + 1, veh_visits, num_visits, i + 1, splits, veh, free_visits, div);
+                OneLocation(visit + 1, veh_visits, num_visits, i + 1, splits, veh, free_visits, div, combinations);
                 
                 free_visits[i] = false;
             }
@@ -243,11 +228,27 @@ namespace DVRP
             }
         }
 
+        // ------------------------------------- wrapper dla TSP (nie trzeba bedzie wywolywac dla kazdego osobno)
+        // combinations - mhmhm, poczatki sciezek :)
+        Tuple<double, int[][]> TSPWrapper(int[] combinations, int[][] splits) {
+            double total_min_cost = 0;
+            double min_cost;
+            int[][] cycle = new int[combinations.Length][];
 
+            for (int i = 0; i < combinations.Length; ++i) {
+                min_cost = Double.MaxValue;
+                bool[] to_visit = new bool[splits[i].Length];
+                cycle[i] = new int[splits[i].Length];
+                FTSPFS(i, splits[i], to_visit, 0, 0, ref min_cost, cycle[i]);
+                total_min_cost += min_cost;
+            }
+            
+            return new Tuple<double, int[][]>(total_min_cost, cycle);
+        }
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
-        void FTSPFS(byte v, byte[] to_visit, bool[] vis, byte visited, double len, ref double min_len, byte[] cycle) {
+        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle) {
             if (len > min_len)
                 return;
             if (visited == to_visit.Length) {
@@ -266,12 +267,6 @@ namespace DVRP
                     vis[w] = false;
                 }
             }
-        }
-
-
-        // ------------------------------- parametry
-        bool IsValid() {
-            return true;
         }
 
         // ---------------------------- odpowiedzialna za przydzial lokacji, przerobic ze wzgedu na chujowow implementacje
