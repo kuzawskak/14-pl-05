@@ -10,7 +10,7 @@ namespace DVRP
     {
         static void Main(string[] args)
         {
-           // TestFileParser parser = new TestFileParser("example2_vt.txt");
+            //TestFileParser parser = new TestFileParser("example2_vt.txt");
             DVRP inst = DVRP.GetInstance(false);
             inst.Solve(null, inst.DivideProblem(null, 10)[0], new TimeSpan(0, 5, 0));
         }

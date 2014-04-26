@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace DVRP
 {
@@ -11,7 +12,7 @@ namespace DVRP
     public enum EdgeWeightFormatEnum { FULL_MATRIX, LOWER_TRIANG, ADJ }
     public enum ObjectiveEnum { VEH_WEIGHT, WEIGHT, MIN_MAX_LEN }
     public enum OrderEnum { GT, GE, LT, LE, EQ }
-    public enum FileSection { DEMAND, TIME_WINDOW, DURATION, LOCATION_COORD, DEPOT_LOCATION, VISIT_LOCATION, EDGE_WEIGHT, OTHER }
+    public enum FileSection { IGNORE,DEMAND, TIME_WINDOW, DURATION, LOCATION_COORD, DEPOT_LOCATION, VISIT_LOCATION, EDGE_WEIGHT, OTHER,DEPOT_TIME_WINDOW,TIME_AVAIL }
 
     class TestFileParser
     {
@@ -41,7 +42,7 @@ namespace DVRP
         public double Capacities { get; private set; }
 
         //SPEED: [1.0]
-        public float Speed { get; private set; } // w plikach nigdzie nie ma, ale chyba trzeba parsować
+        public double Speed { get; private set; } // w plikach nigdzie nie ma, ale chyba trzeba parsować
 
         //MAX_TIME: [inf]
         //public double MaxTime { get; private set; }
@@ -158,6 +159,10 @@ namespace DVRP
                         CurrSect = FileSection.OTHER;
                         this.NumCapacities = Int32.Parse(items[1]);
                         break;
+                    case "SPEED:":
+                        CurrSect = FileSection.OTHER;
+                        this.Speed = Double.Parse(items[1],System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.NumberFormatInfo.InvariantInfo);
+                        break;
                     case "NUM_VISITS:":
                         CurrSect = FileSection.OTHER;
                         this.NumVisits = Int32.Parse(items[1]);
@@ -200,12 +205,13 @@ namespace DVRP
                     case "DEMAND_SECTION":
                         CurrSect = FileSection.DEMAND;
                         this.VisitQuantity = new Dictionary<int, double>(NumVisits);
+                        this.Visits = new int[NumVisits];
                         line_count = 0;
                         break;
-                    //case "TIME_WINDOW_SECTION":
-                    //    CurrSect = FileSection.TIME_WINDOW;
-                    //    this.TimeWindow = new Tuple<double, double>[this.NumVisits];
-                    //    break;
+                    case "TIME_WINDOW_SECTION":
+                        CurrSect = FileSection.IGNORE;
+                        //this.TimeWindow = new Tuple<double, double>[this.NumVisits];
+                        break;
                     case "DURATION_SECTION":
                         CurrSect = FileSection.DURATION;
                         line_count = 0;
@@ -230,6 +236,14 @@ namespace DVRP
                         CurrSect = FileSection.EDGE_WEIGHT;
                         EdgeWeights = new double[this.NumLocations, this.NumLocations];
                         line_count = 0;
+                        break;
+                    case "DEPOT_TIME_WINDOW_SECTION":
+                        CurrSect = FileSection.DEPOT_TIME_WINDOW;
+                        this.DepotsTimeWindow = new Dictionary<int, Tuple<double, double>>(NumDepots);
+                        break;
+                    case "TIME_AVAIL_SECTION":
+                        CurrSect = FileSection.TIME_AVAIL;
+                        this.TimeAvail = new Dictionary<int, double>(NumVisits);
                         break;
                     case "EOF":
                         CurrSect = FileSection.OTHER;
@@ -273,6 +287,12 @@ namespace DVRP
                                             EdgeWeights[line_count, k++] = Int32.Parse(s);
                                     }
                                     line_count++;
+                                    break;
+                                case FileSection.DEPOT_TIME_WINDOW:
+                                    DepotsTimeWindow.Add(Int32.Parse(items[0]), new Tuple<double, double>(Double.Parse(items[1], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo),Double.Parse(items[2], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo)));
+                                    break;
+                                case FileSection.TIME_AVAIL:
+                                    TimeAvail.Add(Int32.Parse(items[0]), Double.Parse(items[1], NumberStyles.AllowDecimalPoint, NumberFormatInfo.InvariantInfo));
                                     break;
 
                             }
