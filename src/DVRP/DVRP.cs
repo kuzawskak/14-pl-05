@@ -178,22 +178,68 @@ namespace DVRP
                 foreach depot in depots: // vehicle 1
                     foreach depot in depots: // vehicle 2
                  * */
-                Brute(0, vehiclesCount, new int[vehiclesCount]);
+                Brute(0, vehiclesCount, new int[vehiclesCount], div);
             }
 
 
             return null;
         }
 
-        void Brute(int num, int num_veh, int[] combinations) {
+        void SplitVisits(int[] combinations, int[] div) {
+            // splits - tablica podzialow dla kazdego z pociagow
+            // splits[0] - ilosc punktow odwiedzanych przez pociag
+            int[][] splits = new int[vehiclesCount][];
+            for(int i = 0; i < vehiclesCount; ++i)
+                splits[i] = new int[div[i]];
+            // wywolanie dla kazdego 
+            ForEachTrain(0, vehiclesCount, new bool[visitsCount], splits, div);
+        }
+
+        void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div) {
+            // jak wszystkie sie podzielily, to licz tsp
+            if(veh >= num_veh) {
+                //etap3(przydzialy);
+                return;
+            }
+            // jak nie, to dziel
+            OneLocation(0, div[veh], visitsCount, 0, splits, veh, free_visits, div);
+        }
+
+        // visit - numer wizyty dla danego pojazdu, veh_visits - powinienien odwiedziec lokacji, num_visits - musi byc 
+        // odwiedzono lokacji sumarycznie,
+        // start - poczatek sprawdzania, veh - numer pojazdu, free_visits - tablica dostepnosci punktow
+        void OneLocation(int visit, int veh_visits, int num_visits, int start, int[][] splits, int veh, bool[] free_visits, int[]div) {
+            // jezeli przydzielil swoje, to dziel dla nastepnego
+            if(visit >= veh_visits) {
+                ForEachTrain(veh + 1, vehiclesCount, free_visits, splits, div);
+                return;
+            }
+ 
+            for(int i = start; i < num_visits; ++i) {
+                // jezeli juz zajety, to pierdol sie
+                if(free_visits[i])
+                    continue;
+   
+                splits[veh][visit] = i;
+                free_visits[i] = true;
+                
+                // kolejny punkt
+                OneLocation(visit + 1, veh_visits, num_visits, i + 1, splits, veh, free_visits, div);
+                
+                free_visits[i] = false;
+            }
+        }
+
+        void Brute(int num, int num_veh, int[] combinations, int[] div) {
             if (num > num_veh) {
                 // etap 2 (wybor punktow)
+                SplitVisits(combinations, div);
                 return;
             }
 
             foreach (int d in depots) {
                 combinations[num] = d;
-                Brute(num + 1, num_veh, combinations);
+                Brute(num + 1, num_veh, combinations, div);
             }
         }
 
