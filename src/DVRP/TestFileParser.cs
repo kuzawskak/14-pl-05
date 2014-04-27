@@ -134,17 +134,16 @@ namespace DVRP
         {
             this.NumDepots = 1;
             this.NumCapacities = 1;
-
-
+            this.Speed = 1;
         }
         /// <summary>
         /// Sets values parsed from txt file
         /// </summary>
         /// <param name="path"></param>
-        public TestFileParser(string path)
+        public TestFileParser(Stream stream) : this()
         {
             int line_count = 0;
-            StreamReader reader = System.IO.File.OpenText(path);
+            StreamReader reader = new StreamReader(stream);//System.IO.File.OpenText(path);
             string line;
             while ((line = reader.ReadLine()) != null)
             {

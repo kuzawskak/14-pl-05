@@ -13,46 +13,46 @@ namespace DVRP
     class DVRP : TaskSolver
     {
         // Ograniczenia dla pojazdów. Definiuje ograniczenia dla wszystkich pojazdów. 
-        private double capacities;  
+        private double capacities;  // x
 
         // Liczba pojazdów
-        private int vehiclesCount;   
+        private int vehiclesCount;   //x
 
         // Liczba zajezdni
-        private int depotsCount;   
+        private int depotsCount;   //x
 
         // Liczba miejsc do odwiedzenia (pickup and delivery points)
-        private int visitsCount;     
+        private int visitsCount;     //x
 
         // Liczba lokacji (visitsCount + depotsCount)
-        private int locationsCount;    
+        private int locationsCount;    //x
 
         // Położenie lokacji (x, y). Używane gdy nie ma podanych wag krawędzi. (przeliczymy na wagi)
-        private System.Windows.Point[] locationsCoords;  
+        private System.Windows.Point[] locationsCoords;  //x
 
         // "Numery wierzchołków" zajezdni
-        private int[] depots;    
+        private int[] depots;    //x
 
         // Numery wierzchołków miejsc do odwiedzenia.
-        private int[] visits;        
+        private int[] visits;      //x  
 
         // Waga ładunku do odebrania/zostawienia w każdej lokacji. (ujemna = dostarczenie)
-        private double[] visitsWeight;   
+        private double[] visitsWeight;   //x
 
         // Wagi krawędzi
-        private double[,] weights;   
+        private double[,] weights;   //x
 
         // Czas otwarcia i zamknięcia zajezdni.
-        private Tuple<double, double>[] depotsTimeWindow;  
+        private Tuple<double, double>[] depotsTimeWindow;  //x
 
         // Czas kiedy wizyta będzie znana.
-        private double[] visitAvailableTime;   
+        private double[] visitAvailableTime;   //x
 
         // Prędkość służąca do zmiany wag krawędzi w czas. Domyślnie 1.
-        private double speed;    
+        private double speed;    //x
 
         // Czas przebywania/rozładunku
-        private double[] visitsDuration;   
+        private double[] visitsDuration;   //x
 
         // najlepszy cykl
         private int[][] cycles;
@@ -93,40 +93,43 @@ namespace DVRP
 
         public static DVRP GetInstance(bool b)
         {
-            //return new DVRP();
+            return new DVRP();
 
-            // Przykładowy problem.
-            const int visits = 40;
-            const int vehicles = 40;
-            const int depots = 1;
+            //// Przykładowy problem.
+            //const int visits = 40;
+            //const int vehicles = 40;
+            //const int depots = 1;
 
-            return new DVRP(
-                vehicles,
-                new int[depots] { 0 },
-                new int[visits] /*{ 1, 2, 3, 4, 5 }*/,
-                new double[visits] /*{ 10, 10, 10, 10, 10 }*/,
-                new double[visits],
-                100,
-                new double[visits + depots, visits + depots]
-                /*{
-                    {5,2,4,7,3,5},
-                    {2,3,4,1,7,8},
-                    {5,2,9,1,3,3},
-                    {4,5,4,6,3,3},
-                    {3,2,4,5,3,2},
-                    {4,3,5,4,2,2}
-                }*/,
-                new Tuple<double, double>[depots]
-                /*{
-                    new Tuple<double, double>(0, double.PositiveInfinity)
-                }*/,
-                new double[visits] /*{ 0, 5, 3, 0, 0 }*/);
+            //return new DVRP(
+            //    vehicles,
+            //    new int[depots] { 0 },
+            //    new int[visits] /*{ 1, 2, 3, 4, 5 }*/,
+            //    new double[visits] /*{ 10, 10, 10, 10, 10 }*/,
+            //    new double[visits],
+            //    100,
+            //    new double[visits + depots, visits + depots]
+            //    /*{
+            //        {5,2,4,7,3,5},
+            //        {2,3,4,1,7,8},
+            //        {5,2,9,1,3,3},
+            //        {4,5,4,6,3,3},
+            //        {3,2,4,5,3,2},
+            //        {4,3,5,4,2,2}
+            //    }*/,
+            //    new Tuple<double, double>[depots]
+            //    /*{
+            //        new Tuple<double, double>(0, double.PositiveInfinity)
+            //    }*/,
+            //    new double[visits] /*{ 0, 5, 3, 0, 0 }*/);
         }
 
         //--------------------------------------Solve
 
         public override byte[] Solve(byte[] commonData, byte[] partialData, TimeSpan timeout)
         {
+            SetProblemData(commonData);
+            Initialize();
+
             DateTime startTime = DateTime.Now;
 
             MemoryStream m = new MemoryStream(partialData);
@@ -158,31 +161,36 @@ namespace DVRP
              * Tablice mogą być wygenerowane do końca w Divide lub należy je generować jeszcze w Solve: trzeba sprawdzić przed rozpoczęciem!
              */
 
-            foreach (int[] div in list) {
+            foreach (int[] div in list)
+            {
                 Brute(0, vehiclesCount, new int[vehiclesCount], div);
             }
 
             return null;
         }
 
-        void SplitVisits(int[] combinations, int[] div) {
+        void SplitVisits(int[] combinations, int[] div)
+        {
             // splits - tablica podzialow dla kazdego z pociagow
             // splits[0] - ilosc punktow odwiedzanych przez pociag
             int[][] splits = new int[vehiclesCount][];
-            for(int i = 0; i < vehiclesCount; ++i)
+            for (int i = 0; i < vehiclesCount; ++i)
                 splits[i] = new int[div[i]];
             // wywolanie dla kazdego 
             ForEachTrain(0, vehiclesCount, new bool[visitsCount], splits, div, combinations);
         }
 
-        void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div, int[] combinations) {
+        void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div, int[] combinations)
+        {
             // jak wszystkie sie podzielily, to licz tsp
-            if(veh >= num_veh) {
+            if (veh >= num_veh)
+            {
                 // wynik z algo
                 Tuple<double, int[][]> ret = TSPWrapper(combinations, splits);
-                if (ret.Item1 < min_cost) {
+                if (ret.Item1 < min_cost)
+                {
                     min_cost = ret.Item1;
-                    cycles = (int [][])ret.Item2.Clone();
+                    cycles = (int[][])ret.Item2.Clone();
                 }
                 return;
             }
@@ -193,36 +201,42 @@ namespace DVRP
         // visit - numer wizyty dla danego pojazdu, veh_visits - powinienien odwiedziec lokacji, num_visits - musi byc 
         // odwiedzono lokacji sumarycznie,
         // start - poczatek sprawdzania, veh - numer pojazdu, free_visits - tablica dostepnosci punktow
-        void OneLocation(int visit, int veh_visits, int num_visits, int start, int[][] splits, int veh, bool[] free_visits, int[]div, int[] combinations) {
+        void OneLocation(int visit, int veh_visits, int num_visits, int start, int[][] splits, int veh, bool[] free_visits, int[] div, int[] combinations)
+        {
             // jezeli przydzielil swoje, to dziel dla nastepnego
-            if(visit >= veh_visits) {
+            if (visit >= veh_visits)
+            {
                 ForEachTrain(veh + 1, vehiclesCount, free_visits, splits, div, combinations);
                 return;
             }
- 
-            for(int i = start; i < num_visits; ++i) {
+
+            for (int i = start; i < num_visits; ++i)
+            {
                 // jezeli juz zajety, to pierdol sie
-                if(free_visits[i])
+                if (free_visits[i])
                     continue;
-   
+
                 splits[veh][visit] = i;
                 free_visits[i] = true;
-                
+
                 // kolejny punkt
                 OneLocation(visit + 1, veh_visits, num_visits, i + 1, splits, veh, free_visits, div, combinations);
-                
+
                 free_visits[i] = false;
             }
         }
 
-        void Brute(int num, int num_veh, int[] combinations, int[] div) {
-            if (num > num_veh) {
+        void Brute(int num, int num_veh, int[] combinations, int[] div)
+        {
+            if (num > num_veh)
+            {
                 // etap 2 (wybor punktow)
                 SplitVisits(combinations, div);
                 return;
             }
 
-            foreach (int d in depots) {
+            foreach (int d in depots)
+            {
                 combinations[num] = d;
                 Brute(num + 1, num_veh, combinations, div);
             }
@@ -230,28 +244,32 @@ namespace DVRP
 
         // ------------------------------------- wrapper dla TSP (nie trzeba bedzie wywolywac dla kazdego osobno)
         // combinations - mhmhm, poczatki sciezek :)
-        Tuple<double, int[][]> TSPWrapper(int[] combinations, int[][] splits) {
+        Tuple<double, int[][]> TSPWrapper(int[] combinations, int[][] splits)
+        {
             double total_min_cost = 0;
             double min_cost;
             int[][] cycle = new int[combinations.Length][];
 
-            for (int i = 0; i < combinations.Length; ++i) {
+            for (int i = 0; i < combinations.Length; ++i)
+            {
                 min_cost = Double.MaxValue;
                 bool[] to_visit = new bool[splits[i].Length];
                 cycle[i] = new int[splits[i].Length];
                 FTSPFS(i, splits[i], to_visit, 0, 0, ref min_cost, cycle[i]);
                 total_min_cost += min_cost;
             }
-            
+
             return new Tuple<double, int[][]>(total_min_cost, cycle);
         }
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
-        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle) {
+        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle)
+        {
             if (len > min_len)
                 return;
-            if (visited == to_visit.Length) {
+            if (visited == to_visit.Length)
+            {
                 // dodaj nowy najlepszy cykl
                 if (min_len > len)
                     min_len = len;
@@ -259,11 +277,13 @@ namespace DVRP
             }
 
             // dla kazdego sasiada
-            foreach (byte w in to_visit) {
-                if (!vis[w]) {
+            foreach (byte w in to_visit)
+            {
+                if (!vis[w])
+                {
                     vis[w] = true;
                     cycle[visited] = w;
-                    FTSPFS(w, to_visit, vis, (byte)(visited + 1), len + weights[v, w], ref min_len, cycle); 
+                    FTSPFS(w, to_visit, vis, (byte)(visited + 1), len + weights[v, w], ref min_len, cycle);
                     vis[w] = false;
                 }
             }
@@ -273,9 +293,11 @@ namespace DVRP
         // sposob dzialania: [3, 1, 2]
         // splited[0] = wszystkie podzialy dla 3, splited[1] = wszystkie podzaily dla 1, splited[2] = wszystkie podzialy dla 2
         // wiec trzeb abedzie potem sprawdzac, czy sa wzajemnie pelne, ja pierdole
-        void SplitLocations(int[] div, out List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited) {
+        void SplitLocations(int[] div, out List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited)
+        {
             splited = new List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>>();
-            foreach(int d in div) {
+            foreach (int d in div)
+            {
                 var res = Combination.Combinations(visits, d);
                 splited.Add(res);
             }
@@ -283,8 +305,62 @@ namespace DVRP
 
         //--------------------------------------Divide
 
+        private void SetProblemData(byte[] data)
+        {
+            MemoryStream stream = new MemoryStream(data);
+            TestFileParser problemParser = new TestFileParser(stream);
+
+            capacities = problemParser.Capacities;
+            vehiclesCount = problemParser.NumVehicles;
+            depotsCount = problemParser.NumDepots;
+            visitsCount = problemParser.NumVisits;
+            locationsCount = vehiclesCount + visitsCount;//problemParser.NumLocations;
+
+            if (problemParser.EdgeWeights != null)
+                weights = problemParser.EdgeWeights;
+
+            speed = problemParser.Speed;
+
+            for (int i = 0; i < depotsCount; ++i)
+            {
+                if (problemParser.LocationIds == null)
+                    depots[i] = i;
+                else
+                    depots[i] = Array.IndexOf(problemParser.LocationIds, problemParser.DepotsLocation[problemParser.Depots[i]]);
+            }
+
+            for (int i = 0; i < visitsCount; ++i)
+            {
+                if (problemParser.LocationIds == null)
+                    visits[i] = i + depotsCount;
+                else
+                    visits[i] = Array.IndexOf(problemParser.LocationIds, problemParser.VisitLocations[problemParser.Visits[i]]);
+            }
+
+            if (problemParser.LocationsCoords != null)
+            {
+                for (int i = 0; i < locationsCount; ++i)
+                {
+                    locationsCoords[i] = problemParser.LocationsCoords[problemParser.LocationIds[i]];
+                }
+            }
+
+            for (int i = 0; i < visitsCount; ++i)
+            {
+                visitsWeight[i] = problemParser.VisitQuantity[problemParser.Visits[i]];
+                visitsDuration[i] = problemParser.VisitsDuration[problemParser.Visits[i]];
+                visitAvailableTime[i] = problemParser.TimeAvail[problemParser.Visits[i]];
+            }
+
+            for (int i = 0; i < depotsCount; ++i)
+            {
+                depotsTimeWindow[i] = problemParser.DepotsTimeWindow[problemParser.Depots[i]];
+            }
+        }
+
         public override byte[][] DivideProblem(byte[] data, int threadCount)
         {
+            SetProblemData(data);
             Initialize();
 
             List<int[]> list = new List<int[]>();
@@ -371,7 +447,7 @@ namespace DVRP
                 return;
             }
 
-            int put = (i == 0 || tmp[i-1] >= left) ? left : tmp[i - 1];
+            int put = (i == 0 || tmp[i - 1] >= left) ? left : tmp[i - 1];
             left = left - put;
 
 
@@ -382,7 +458,7 @@ namespace DVRP
 
                 tmp[i] = put;
                 //if(i == 0 || tmp[i-1] >= put)
-                    GenerateSets(n, k, list, left, i + 1, tmp, more);
+                GenerateSets(n, k, list, left, i + 1, tmp, more);
                 put--;
                 left++;
             }
