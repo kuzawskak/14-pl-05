@@ -13,6 +13,7 @@ namespace DVRP
         static void Main(string[] args)
         {
             //TestFileParser parser = new TestFileParser("example2_vt.txt");
+
             DVRP inst = DVRP.GetInstance(false);
             MemoryStream ms = new MemoryStream();
             System.IO.File.OpenRead("dvrp_problems\\okul12D.vrp").CopyTo(ms);

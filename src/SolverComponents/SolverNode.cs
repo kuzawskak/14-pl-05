@@ -47,8 +47,6 @@ namespace SolverComponents
                 }
             }
 
-
-
             /// <summary>
             /// Rejestracja komponentu u CS
             /// </summary>

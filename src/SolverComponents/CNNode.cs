@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using CommunicationNetwork;
@@ -23,16 +24,29 @@ namespace SolverComponents
         public void SolveProblem(SolvePartialProblems msg)
         {
 
-
             //get the problem with your id
             List <Solution> solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
 
+            var asm = Assembly.LoadFile("DVRP.dll");
+            Type t = asm.GetType("DVRP.DVRP");
+
+            var methodInfo = t.GetMethod("Solve", new Type[] { typeof(byte[]), typeof(int) });
             if (problems_list != null)
             {
                 foreach (PartialProblem pp in problems_list)
                 {
-                    Solution s = new Solution(pp.TaskId,false,SolutionType.Partial, 1000, pp.Data);
+                    var o = Activator.CreateInstance(t);
+                    object[] param = new object[3];
+                    
+                    param[0] = msg.CommonData;
+                    param[1] = pp.Data;
+                    param[2] = msg.SolvingTimeout;
+                    var result = methodInfo.Invoke(o, param);
+                    byte[] ans =(byte[])result;
+
+                    Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, ans);
+                    
                     solution.Add(s);
                 }
             }

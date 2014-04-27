@@ -110,7 +110,7 @@ namespace Components
             {
                 Multiselect = false,
                 Title = "Select XML Document",
-                Filter = "XML Document|*.xml;"
+               // Filter = "XML Document|*.xml;"
             };
 
             string problem_data_filepath = null;

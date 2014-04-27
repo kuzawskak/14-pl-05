@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using CommunicationNetwork;
 using CommunicationXML;
+using DVRP;
 
 namespace SolverComponents
 {
@@ -18,6 +20,7 @@ namespace SolverComponents
         
         private static List<SolverRegisteredProblem> ongoing_problems = new List<SolverRegisteredProblem>();
 
+        private List<byte[]> PartialSolutions = new List<byte[]>();
         public TMNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
         {
             type = NodeType.TaskManager;
@@ -59,13 +62,25 @@ namespace SolverComponents
             ulong? timeout_in_miliseconds = timeout != null ? (ulong?)timeout.Millisecond : null;
             ulong computational_nodes = msg.ComputationalNodes;
 
+            var asm = Assembly.LoadFile("DVRP.dll");
+            Type t = asm.GetType("DVRP.DVRP");
+
+            var methodInfo = t.GetMethod("DivideProblem", new Type[] { typeof(byte[]), typeof(int) });
+            var o = Activator.CreateInstance(t);
+            object[] param = new object[2];
+            param[0] = msg.Data;
+            param[1] = (int)computational_nodes;
+            var result = methodInfo.Invoke(o, param);
+
+            List<byte[]> ans = (List<byte[]>)result ;
+
             List<PartialProblem> divided_problems = new List<PartialProblem>();
             //tworzymy tyle podproblemow ile dostepnych nodów 
             
             for (int i = 0; i < (int)computational_nodes; i++)
             {
                 Console.WriteLine("adding partial problem to divided problems");
-                PartialProblem pp = new PartialProblem((ulong)i, msg.Data);            
+                PartialProblem pp = new PartialProblem((ulong)i, ans[i]);           
                 divided_problems.Add(pp);
             }
 
@@ -122,6 +137,7 @@ namespace SolverComponents
                 foreach (Solution s in msg.SolutionsList)
                 {
                     p.MarkAsSolved((ulong)s.TaskId);
+                    PartialSolutions.Add(s.Data);
                 }
             }
             else Console.WriteLine("Not foung Solver registered problem");
@@ -129,10 +145,22 @@ namespace SolverComponents
             Solutions solutions_msg = null;
             if (p!=null && p.IsProblemSolved())
             {
+
                 ongoing_problems.Remove(p);
                 Console.WriteLine("TM: Ready to merge solution");
                 //one common solution
-                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final, 1000, msg.CommonData);
+
+                var asm = Assembly.LoadFile("DVRP.dll");
+                Type t = asm.GetType("DVRP.DVRP");
+
+                var methodInfo = t.GetMethod("MergeSolution", new Type[] { typeof(byte[]), typeof(int) });
+                var o = Activator.CreateInstance(t);
+                object[] param = new object[1];
+                param[0] = PartialSolutions.ToArray();               
+                var result = methodInfo.Invoke(o, param);
+                byte[] ans = (byte[])result;
+
+                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final, 1000, ans);
                 List<Solution> solution_to_send = new List<Solution>();
                 solution_to_send.Add(final_solution);
 
