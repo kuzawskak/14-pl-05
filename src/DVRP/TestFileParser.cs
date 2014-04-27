@@ -147,6 +147,7 @@ namespace DVRP
             string line;
             while ((line = reader.ReadLine()) != null)
             {
+                line = line.Trim();
                 string[] items = line.Split(' ');
                 switch (items[0])
                 {
@@ -192,7 +193,7 @@ namespace DVRP
                         break;
                     case "DEPOTS":
                         CurrSect = FileSection.OTHER;
-                        line = reader.ReadLine();
+                        line = reader.ReadLine().Trim();
                         items = line.Split(' ');
                         this.Depots = new int[items.Count()];
                         int i = 0;
@@ -246,6 +247,8 @@ namespace DVRP
                         break;
                     case "EOF":
                         CurrSect = FileSection.OTHER;
+                        break;
+                    case "COMMENT:":
                         break;
                     //TODO: uwzglednic pozostale pola ktore nie sa uwzglednione w probnym pliku
 

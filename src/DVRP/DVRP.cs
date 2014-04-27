@@ -66,26 +66,6 @@ namespace DVRP
         {
         }
 
-        private DVRP(int _vehiclesCount, int[] _depots, int[] _visits, double[] _visitsWeight, double[] _visitsDuration, double _capacities, double[,] _weights, Tuple<double, double>[] _depotsTimeWindow, double[] _visitAvailableTime)
-        {
-            capacities = _capacities;
-            vehiclesCount = _vehiclesCount;
-            depotsCount = _depots.Length;
-            visitsCount = _visits.Length;
-            locationsCount = visitsCount + depotsCount;
-            locationsCoords = null; // to bedzie parsowane!
-            depots = _depots;
-            visits = _visits;
-            visitsWeight = _visitsWeight;
-            weights = _weights; // to bedzie obliczane
-            depotsTimeWindow = _depotsTimeWindow;
-            visitAvailableTime = _visitAvailableTime;
-            speed = 1;
-            visitsDuration = _visitsDuration;
-            cycles = null;
-            min_cost = Double.MaxValue;
-        }
-
         public override TaskSolver GetInstance()
         {
             return DVRP.GetInstance(false);
@@ -161,12 +141,18 @@ namespace DVRP
              * Tablice mogą być wygenerowane do końca w Divide lub należy je generować jeszcze w Solve: trzeba sprawdzić przed rozpoczęciem!
              */
 
+            min_cost = double.MaxValue;
             foreach (int[] div in list)
             {
                 Brute(0, vehiclesCount, new int[vehiclesCount], div);
             }
 
-            return null;
+            Console.WriteLine(min_cost);
+
+            MemoryStream ms = new MemoryStream();
+            new BinaryFormatter().Serialize(ms, min_cost);
+
+            return ms.ToArray();
         }
 
         void SplitVisits(int[] combinations, int[] div)
@@ -182,6 +168,11 @@ namespace DVRP
 
         void ForEachTrain(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div, int[] combinations)
         {
+            if (veh == 0)
+                Console.WriteLine("==================================");
+            if (veh == 1)
+                Console.WriteLine(string.Join("; ", splits.Select(x => string.Join(" ", x.Select(y => y.ToString())))));
+
             // jak wszystkie sie podzielily, to licz tsp
             if (veh >= num_veh)
             {
@@ -228,7 +219,7 @@ namespace DVRP
 
         void Brute(int num, int num_veh, int[] combinations, int[] div)
         {
-            if (num > num_veh)
+            if (num >= num_veh)
             {
                 // etap 2 (wybor punktow)
                 SplitVisits(combinations, div);
@@ -253,7 +244,7 @@ namespace DVRP
             for (int i = 0; i < combinations.Length; ++i)
             {
                 min_cost = Double.MaxValue;
-                bool[] to_visit = new bool[splits[i].Length];
+                bool[] to_visit = new bool[visitsCount]; //new bool[splits[i].Length];
                 cycle[i] = new int[splits[i].Length];
                 FTSPFS(i, splits[i], to_visit, 0, 0, ref min_cost, cycle[i]);
                 total_min_cost += min_cost;
@@ -314,12 +305,15 @@ namespace DVRP
             vehiclesCount = problemParser.NumVehicles;
             depotsCount = problemParser.NumDepots;
             visitsCount = problemParser.NumVisits;
-            locationsCount = vehiclesCount + visitsCount;//problemParser.NumLocations;
+            locationsCount = depotsCount + visitsCount;//problemParser.NumLocations;
 
             if (problemParser.EdgeWeights != null)
                 weights = problemParser.EdgeWeights;
 
             speed = problemParser.Speed;
+            depots = new int[depotsCount];
+            visits = new int[visitsCount];
+            locationsCoords = new System.Windows.Point[locationsCount];
 
             for (int i = 0; i < depotsCount; ++i)
             {
@@ -345,12 +339,21 @@ namespace DVRP
                 }
             }
 
+            visitsWeight = new double[visitsCount];
+            visitAvailableTime = new double[visitsCount];
+            visitsDuration = new double[visitsCount];
+
             for (int i = 0; i < visitsCount; ++i)
             {
                 visitsWeight[i] = problemParser.VisitQuantity[problemParser.Visits[i]];
                 visitsDuration[i] = problemParser.VisitsDuration[problemParser.Visits[i]];
-                visitAvailableTime[i] = problemParser.TimeAvail[problemParser.Visits[i]];
+                if (problemParser.TimeAvail == null)
+                    visitAvailableTime[i] = 0;
+                else
+                    visitAvailableTime[i] = problemParser.TimeAvail[problemParser.Visits[i]];
             }
+
+            depotsTimeWindow = new Tuple<double, double>[depotsCount];
 
             for (int i = 0; i < depotsCount; ++i)
             {
@@ -525,8 +528,18 @@ namespace DVRP
 
         public override byte[] MergeSolution(byte[][] solutions)
         {
+            BinaryFormatter bf = new BinaryFormatter();
+            List<double> min_costs = new List<double>();
 
-            return null;
+            foreach (byte[] x in solutions)
+                min_costs.Add((double)bf.Deserialize(new MemoryStream(x)));
+
+            double mc = min_costs.Min();
+
+            MemoryStream ms = new MemoryStream();
+            bf.Serialize(ms, mc);
+
+            return ms.ToArray();
         }
     }
 }
