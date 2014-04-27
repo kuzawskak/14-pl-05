@@ -246,7 +246,8 @@ namespace DVRP
                 min_cost = Double.MaxValue;
                 bool[] to_visit = new bool[visitsCount]; //new bool[splits[i].Length];
                 cycle[i] = new int[splits[i].Length];
-                FTSPFS(i, splits[i], to_visit, 0, 0, ref min_cost, cycle[i]);
+                FTSPFS(depots[combinations[i]], splits[i], to_visit, 0, 0, ref min_cost, cycle[i], 
+                    depotsTimeWindow[combinations[i]].Item1);
                 total_min_cost += min_cost;
             }
 
@@ -255,7 +256,7 @@ namespace DVRP
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
-        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle)
+        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle, double time)
         {
             if (len > min_len)
                 return;
@@ -268,13 +269,14 @@ namespace DVRP
             }
 
             // dla kazdego sasiada
-            foreach (byte w in to_visit)
+            foreach (int w in to_visit)
             {
-                if (!vis[w])
+                if (!vis[w] && visitAvailableTime[w] < time)
                 {
                     vis[w] = true;
                     cycle[visited] = w;
-                    FTSPFS(w, to_visit, vis, (byte)(visited + 1), len + weights[v, w], ref min_len, cycle);
+                    FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]], ref min_len, cycle,
+                        time + weights[v, visits[w]] + visitsDuration[w]);
                     vis[w] = false;
                 }
             }
