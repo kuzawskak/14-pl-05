@@ -263,12 +263,15 @@ namespace DVRP
             if (visited == to_visit.Length)
             {
                 // dodaj nowy najlepszy cykl
-                if (min_len > len)
-                    min_len = len;
+                for(int i = 0; i < depotsCount; ++i)
+                    if (time + weights[v, depots[i]] < depotsTimeWindow[i].Item2 && min_len > len + weights[v, depots[i]])
+                        min_len = len + weights[v, depots[i]];
                 return;
             }
 
             // dla kazdego sasiada
+            // mozna dodac sprawdzanie zajezdni i odrzucac, jak dla wszystkich juz sie nie da dojechac 
+            // (poki co jest pomysl tylko na rozwiazanie tego problemu w sposob chujowy :) )
             foreach (int w in to_visit)
             {
                 if (!vis[w] && visitAvailableTime[w] < time)
