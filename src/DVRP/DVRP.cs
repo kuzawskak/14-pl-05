@@ -281,7 +281,7 @@ namespace DVRP
                     double www = 0;
                     int last_v = v;
                     // TODO: pierwszy depot, musi byc zmienione
-                    if (cap + weights[v, depots[0]] < 0) {
+                    if (cap + visitsWeight[w] < 0) {
                         cap = capacities;
                         www = weights[v, depots[0]];
                         v = depots[0];
