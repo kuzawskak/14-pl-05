@@ -459,6 +459,18 @@ namespace DVRP
                     }
                 }
             }
+            // init cut-off stuff
+            
+            double max_time = Double.MinValue;
+            foreach(Tuple<double, double> time in depotsTimeWindow)
+                if (max_time < time.Item2)
+                    max_time = time.Item2;
+
+            double cut_off = max_time * 0.5;
+
+            for (int i = 0; i < visitAvailableTime.Length; ++i)
+                if (visitAvailableTime[i] > cut_off)
+                    visitAvailableTime[i] = 0;
         }
 
         private void GenerateSets(int n, int k, List<int[]> list, int left, int i, int[] tmp, int more)
