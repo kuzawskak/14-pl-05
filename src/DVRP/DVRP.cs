@@ -273,18 +273,31 @@ namespace DVRP
 
             // dla kazdego sasiada
             // mozna dodac sprawdzanie zajezdni i odrzucac, jak dla wszystkich juz sie nie da dojechac 
-            // (poki co jest pomysl tylko na rozwiazanie tego problemu w sposob chujowy :) )
+            // (poki co jest pomysl tylko na rozwiazanie tego problemu)
             foreach (int w in to_visit)
             {
                 if (!vis[w] /*&& visitAvailableTime[w] < time*/)
                 {
+                    double www = 0;
+                    int last_v = v;
+                    // TODO: pierwszy depot, musi byc zmienione
+                    if (cap + weights[v, depots[0]] < 0) {
+                        cap = capacities;
+                        www = weights[v, depots[0]];
+                        v = depots[0];
+                    }
+
                     // czekaj na dostepnosc
                     if (visitAvailableTime[w] > time)
                         time = visitAvailableTime[w];
                     vis[w] = true;
                     cycle[visited] = w;
-                    FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]], ref min_len, cycle,
-                        time + weights[v, visits[w]] + visitsDuration[w], capacities); // should be changed
+                    FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]] + www, ref min_len, cycle,
+                        time + weights[v, visits[w]] + visitsDuration[w] + www, cap + visitsWeight[w]);
+
+                    if (www != 0)
+                        v = last_v;
+
                     vis[w] = false;
                 }
             }
