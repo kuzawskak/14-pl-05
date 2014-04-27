@@ -55,7 +55,7 @@ namespace DVRP
         private double[] visitsDuration;   //x
 
         // najlepszy cykl
-        private int[][] cycles;
+        private List<int>[] cycles;
 
         // koszt najmniejszej sciezki
         private double min_cost;
@@ -148,7 +148,14 @@ namespace DVRP
             }
 
             Console.WriteLine(min_cost);
-
+            /*
+            for (int i = 0; i < cycles.Length; ++i) {
+                Console.Write(i + ": <");
+                foreach(int el in cycles[i])
+                    Console.Write(el + ", ");
+                Console.WriteLine(">");
+            }
+            */
             MemoryStream ms = new MemoryStream();
             new BinaryFormatter().Serialize(ms, min_cost);
 
@@ -177,11 +184,11 @@ namespace DVRP
             if (veh >= num_veh)
             {
                 // wynik z algo
-                Tuple<double, int[][]> ret = TSPWrapper(combinations, splits);
+                Tuple<double, List<int>[]> ret = TSPWrapper(combinations, splits);
                 if (ret.Item1 < min_cost)
                 {
                     min_cost = ret.Item1;
-                    cycles = (int[][])ret.Item2.Clone();
+                    cycles = ret.Item2;
                 }
                 return;
             }
@@ -235,35 +242,38 @@ namespace DVRP
 
         // ------------------------------------- wrapper dla TSP (nie trzeba bedzie wywolywac dla kazdego osobno)
         // combinations - mhmhm, poczatki sciezek :)
-        Tuple<double, int[][]> TSPWrapper(int[] combinations, int[][] splits)
+        Tuple<double, List<int>[]> TSPWrapper(int[] combinations, int[][] splits)
         {
             double total_min_cost = 0;
             double min_cost;
             int[][] cycle = new int[combinations.Length][];
+            List<int>[] path = new List<int>[combinations.Length];
 
             for (int i = 0; i < combinations.Length; ++i)
             {
                 min_cost = Double.MaxValue;
                 bool[] to_visit = new bool[visitsCount]; //new bool[splits[i].Length];
                 cycle[i] = new int[splits[i].Length];
+                // path[i] = new List<int>();
                 FTSPFS(depots[combinations[i]], splits[i], to_visit, 0, 0, ref min_cost, cycle[i], 
-                    depotsTimeWindow[combinations[i]].Item1, capacities);
+                    depotsTimeWindow[combinations[i]].Item1, capacities/*, path[i]*/);
                 total_min_cost += min_cost;
                 if (total_min_cost >= Double.MaxValue)
                     break;
             }
 
-            return new Tuple<double, int[][]>(total_min_cost, cycle);
+            return new Tuple<double, List<int>[]>(total_min_cost, path);
         }
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
-        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle, double time, double cap)
+        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle, double time, double cap/*, List<int> path*/)
         {
             if (len > min_len)
                 return;
             if (visited == to_visit.Length)
             {
+                // TODO: dodanie elementu w miejscu ostatniej zajezdni
                 // dodaj nowy najlepszy cykl
                 for(int i = 0; i < depotsCount; ++i)
                     if (time + weights[v, depots[i]] < depotsTimeWindow[i].Item2 && min_len > len + weights[v, depots[i]])
@@ -285,6 +295,7 @@ namespace DVRP
                         cap = capacities;
                         www = weights[v, depots[0]];
                         v = depots[0];
+                        //path.Add(v);
                     }
 
                     // czekaj na dostepnosc
@@ -292,11 +303,14 @@ namespace DVRP
                         time = visitAvailableTime[w];
                     vis[w] = true;
                     cycle[visited] = w;
+                    //path.Add(visits[w]);
                     FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]] + www, ref min_len, cycle,
-                        time + weights[v, visits[w]] + visitsDuration[w] + www, cap + visitsWeight[w]);
-
-                    if (www != 0)
+                        time + weights[v, visits[w]] + visitsDuration[w] + www, cap + visitsWeight[w]/*, path*/);
+                    //path.RemoveAt(path.Count - 1);
+                    if (www != 0) {
+                        //path.RemoveAt(path.Count - 1);
                         v = last_v;
+                    }
 
                     vis[w] = false;
                 }
