@@ -60,6 +60,10 @@
       <Project>{5f1f05bb-243f-42be-889d-af6c964771f6}</Project>
       <Name>CommunicationXML</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DVRP\DVRP.csproj">
+      <Project>{5b012f2b-f0b5-43ac-8661-53af207ee714}</Project>
+      <Name>DVRP</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

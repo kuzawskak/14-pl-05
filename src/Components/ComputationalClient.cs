@@ -8,6 +8,8 @@ using System.Threading;
 using System.Xml;
 using CommunicationNetwork;
 using CommunicationXML;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Components
 {
@@ -51,12 +53,15 @@ namespace Components
         {
 
 
-            XmlDocument problem_data_xml = new XmlDocument();
-            problem_data_xml.Load(problem_data_filepath);
-            problem_data = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
-            problem_data = new byte[10];
+           // XmlDocument problem_data_xml = new XmlDocument();
+            MemoryStream ms = new MemoryStream();
+            System.IO.File.OpenRead(problem_data_filepath).CopyTo(ms);
+            byte[] data = ms.ToArray();
+            //problem_data_xml.Load(problem_data_filepath);
+           // problem_data = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
+            //problem_data = new byte[10];
             //will be changed
-            SolveRequest solve_request = new SolveRequest(problem_type, problem_data,solving_timeout);
+            SolveRequest solve_request = new SolveRequest(problem_type, /*problem_*/data,solving_timeout);
             byte[] register_response = client.Work(solve_request.GetXmlData());
             if (register_response != null)
             {
@@ -106,6 +111,9 @@ namespace Components
                             {
                                 case SolutionType.Final:
                                     computing_status = "Final";
+
+                                    double a = (double)new BinaryFormatter().Deserialize(new MemoryStream(s.Data));
+                                     Console.WriteLine("MinCost = " + a);
                                     break;
                                 case SolutionType.Ongoing:
                                     computing_status = "OnGoing";
