@@ -247,8 +247,10 @@ namespace DVRP
                 bool[] to_visit = new bool[visitsCount]; //new bool[splits[i].Length];
                 cycle[i] = new int[splits[i].Length];
                 FTSPFS(depots[combinations[i]], splits[i], to_visit, 0, 0, ref min_cost, cycle[i], 
-                    depotsTimeWindow[combinations[i]].Item1);
+                    depotsTimeWindow[combinations[i]].Item1, capacities);
                 total_min_cost += min_cost;
+                if (total_min_cost >= Double.MaxValue)
+                    break;
             }
 
             return new Tuple<double, int[][]>(total_min_cost, cycle);
@@ -256,7 +258,7 @@ namespace DVRP
 
         //--------------------------------------FTSTPFS capitan (-:
         // cos musi z czasem jescze byc dodane pewnie
-        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle, double time)
+        void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, double len, ref double min_len, int[] cycle, double time, double cap)
         {
             if (len > min_len)
                 return;
@@ -274,12 +276,15 @@ namespace DVRP
             // (poki co jest pomysl tylko na rozwiazanie tego problemu w sposob chujowy :) )
             foreach (int w in to_visit)
             {
-                if (!vis[w] && visitAvailableTime[w] < time)
+                if (!vis[w] /*&& visitAvailableTime[w] < time*/)
                 {
+                    // czekaj na dostepnosc
+                    if (visitAvailableTime[w] > time)
+                        time = visitAvailableTime[w];
                     vis[w] = true;
                     cycle[visited] = w;
                     FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]], ref min_len, cycle,
-                        time + weights[v, visits[w]] + visitsDuration[w]);
+                        time + weights[v, visits[w]] + visitsDuration[w], capacities); // should be changed
                     vis[w] = false;
                 }
             }
@@ -288,7 +293,7 @@ namespace DVRP
         // ---------------------------- odpowiedzialna za przydzial lokacji, przerobic ze wzgedu na chujowow implementacje
         // sposob dzialania: [3, 1, 2]
         // splited[0] = wszystkie podzialy dla 3, splited[1] = wszystkie podzaily dla 1, splited[2] = wszystkie podzialy dla 2
-        // wiec trzeb abedzie potem sprawdzac, czy sa wzajemnie pelne, ja pierdole
+        // wiec trzeb abedzie potem sprawdzac, czy sa wzajemnie pelne
         void SplitLocations(int[] div, out List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited)
         {
             splited = new List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>>();
