@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using SolverComponents;
@@ -11,6 +13,13 @@ namespace ComputationalNode
     {
         static void Main(string[] args)
         {
+
+            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+            Type t = asm.GetType("DVRP.DVRP");
+
+            MethodInfo[] methodInfo = t.GetMethods();
+            foreach (MethodInfo mi in methodInfo)
+                Console.WriteLine(mi.ToString());
             string ip_address;
             string port;
             string thread_number;

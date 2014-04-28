@@ -66,11 +66,11 @@ namespace SolverComponents
             var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
             Type t = asm.GetType("DVRP.DVRP");
 
-            var methodInfo = t.GetMethod("DivideProblem", new Type[] { typeof(byte[]), typeof(int) });
+            var methodInfo = t.GetMethod("DivideProblem");
             var o = Activator.CreateInstance(t);
             object[] param = new object[2];
             param[0] = msg.Data;
-            param[1] = 10000;// (int)computational_nodes;
+            param[1] = (int)msg.ComputationalNodes;//computational_nodes;
             byte[][] result = (byte[][])methodInfo.Invoke(o, param);
 
         
@@ -153,8 +153,8 @@ namespace SolverComponents
                 var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
                 Type t = asm.GetType("DVRP.DVRP");
 
-                var methodInfo = t.GetMethod("MergeSolution", new Type[] { typeof(byte[]), typeof(int) });
-
+                var methodInfo = t.GetMethod("MergeSolution");//, new Type[] { typeof(byte[]), typeof(int) });
+                
                 var o = Activator.CreateInstance(t);
               
                 object[] param = new object[1];

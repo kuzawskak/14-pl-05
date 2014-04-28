@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using SolverComponents;
@@ -11,10 +13,13 @@ namespace TaskManager
     {
         static void Main(string[] args)
         {
+         
             string ip_address;
             string port;
             string thread_number;
             List<string> problem_names = new List<string>();
+
+          
 
             Console.Write("IP Address ");
             ip_address = Console.ReadLine();

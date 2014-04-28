@@ -7,6 +7,7 @@ using System.Threading;
 using CommunicationNetwork;
 using CommunicationXML;
 using System.IO;
+using DVRP;
 
 namespace SolverComponents
 {
@@ -32,25 +33,29 @@ namespace SolverComponents
             var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
             Type t = asm.GetType("DVRP.DVRP");
        
-            var methodInfo = t.GetMethod("Solve", new Type[] { typeof(byte[]), typeof(int) });
+            var methodInfo = t.GetMethod("Solve");//, new Type[] { typeof(byte[]), typeof(int) });
             var o = Activator.CreateInstance(t);
             if (problems_list != null)
             {
                 foreach (PartialProblem pp in problems_list)
-                {                  
-                    object[] param = new object[3];
-                    
-                    param[0] = msg.CommonData;
-                    param[1] = pp.Data;
-                    param[2] = new TimeSpan(10, 0, 0);
+                {
+                    if (methodInfo != null)
+                    {
+                        object[] param = new object[3];
 
-                   // byte[] result =(byte[]) 
-                        methodInfo.Invoke(o, param);
-                    
+                        param[0] = msg.CommonData;
+                        param[1] = pp.Data;
+                        param[2] = new TimeSpan(10, 0, 0);
 
-                   // Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, result);
-                    
-                   // solution.Add(s);
+                        byte[] result = (byte[])
+                            methodInfo.Invoke(o, param);
+
+                        Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, result);
+
+                        solution.Add(s);
+                    }
+                    else Console.WriteLine("Method equal to null");
+                                    
                 }
             }
             else
