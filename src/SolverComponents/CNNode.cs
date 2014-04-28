@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using CommunicationNetwork;
 using CommunicationXML;
+using System.IO;
 
 namespace SolverComponents
 {
@@ -28,26 +29,28 @@ namespace SolverComponents
             List <Solution> solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
 
-            var asm = Assembly.LoadFile("DVRP.dll");
+            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
             Type t = asm.GetType("DVRP.DVRP");
-
+       
             var methodInfo = t.GetMethod("Solve", new Type[] { typeof(byte[]), typeof(int) });
+            var o = Activator.CreateInstance(t);
             if (problems_list != null)
             {
                 foreach (PartialProblem pp in problems_list)
-                {
-                    var o = Activator.CreateInstance(t);
+                {                  
                     object[] param = new object[3];
                     
                     param[0] = msg.CommonData;
                     param[1] = pp.Data;
-                    param[2] = msg.SolvingTimeout;
-                    var result = methodInfo.Invoke(o, param);
-                    byte[] ans =(byte[])result;
+                    param[2] = new TimeSpan(10, 0, 0);
 
-                    Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, ans);
+                   // byte[] result =(byte[]) 
+                        methodInfo.Invoke(o, param);
                     
-                    solution.Add(s);
+
+                   // Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, result);
+                    
+                   // solution.Add(s);
                 }
             }
             else

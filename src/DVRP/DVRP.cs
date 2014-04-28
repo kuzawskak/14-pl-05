@@ -62,7 +62,7 @@ namespace DVRP
 
         //--------------------------------------
 
-        private DVRP()
+        public DVRP()
         {
         }
 

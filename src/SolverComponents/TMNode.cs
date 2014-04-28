@@ -7,6 +7,7 @@ using System.Threading;
 using CommunicationNetwork;
 using CommunicationXML;
 using DVRP;
+using System.IO;
 
 namespace SolverComponents
 {
@@ -62,25 +63,24 @@ namespace SolverComponents
             ulong? timeout_in_miliseconds = timeout != null ? (ulong?)timeout.Millisecond : null;
             ulong computational_nodes = msg.ComputationalNodes;
 
-            var asm = Assembly.LoadFile("DVRP.dll");
+            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
             Type t = asm.GetType("DVRP.DVRP");
 
             var methodInfo = t.GetMethod("DivideProblem", new Type[] { typeof(byte[]), typeof(int) });
             var o = Activator.CreateInstance(t);
             object[] param = new object[2];
             param[0] = msg.Data;
-            param[1] = (int)computational_nodes;
-            var result = methodInfo.Invoke(o, param);
+            param[1] = 10000;// (int)computational_nodes;
+            byte[][] result = (byte[][])methodInfo.Invoke(o, param);
 
-            List<byte[]> ans = (List<byte[]>)result ;
-
+        
             List<PartialProblem> divided_problems = new List<PartialProblem>();
             //tworzymy tyle podproblemow ile dostepnych nodów 
             
             for (int i = 0; i < (int)computational_nodes; i++)
             {
                 Console.WriteLine("adding partial problem to divided problems");
-                PartialProblem pp = new PartialProblem((ulong)i, ans[i]);           
+                PartialProblem pp = new PartialProblem((ulong)i, result[i]);           
                 divided_problems.Add(pp);
             }
 
@@ -150,11 +150,13 @@ namespace SolverComponents
                 Console.WriteLine("TM: Ready to merge solution");
                 //one common solution
 
-                var asm = Assembly.LoadFile("DVRP.dll");
+                var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
                 Type t = asm.GetType("DVRP.DVRP");
 
                 var methodInfo = t.GetMethod("MergeSolution", new Type[] { typeof(byte[]), typeof(int) });
+
                 var o = Activator.CreateInstance(t);
+              
                 object[] param = new object[1];
                 param[0] = PartialSolutions.ToArray();               
                 var result = methodInfo.Invoke(o, param);
@@ -196,7 +198,7 @@ namespace SolverComponents
                 {
                     case MessageTypes.DivideProblem:
                         //DivideProblem((DivideProblem)parser.Message);
-                        Thread.Sleep(2000);
+                       // Thread.Sleep(2000);
                         Console.WriteLine("TM divides and send problem to CS");
                         DivideProblemSimulation((DivideProblem)parser.Message);
                         break;
