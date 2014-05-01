@@ -192,7 +192,7 @@ namespace DVRP
                     isTimeout = true;
                     break;
                 }
-                Thread.Sleep(5000);
+                Thread.Sleep(1000);
             }
         }
 
@@ -218,7 +218,8 @@ namespace DVRP
             isTimeout = false;
 
             // Task odpowiedzialny za przerwanie obliczeń w przypadku timeout.
-            backgroundTask = Task.Factory.StartNew(() => TimeoutCheck());
+            if(timeout != null)
+                backgroundTask = Task.Factory.StartNew(() => TimeoutCheck());
 
             try
             {
@@ -236,7 +237,7 @@ namespace DVRP
                 {
                     if (isTimeout)
                         throw new TimeoutException();
-                    TestDepotsCombinations(0, vehiclesCount, new int[vehiclesCount], div);
+                    TestDepotsCombinations(0, new int[vehiclesCount], div);
                 }
 
                 Console.WriteLine();
@@ -281,7 +282,8 @@ namespace DVRP
             }
 
             isSolving = false;
-            backgroundTask.Wait();
+            if(timeout != null)
+                backgroundTask.Wait();
 
             return Solution;
         }
@@ -291,14 +293,14 @@ namespace DVRP
         /// </summary>
         /// <param name="n">Numer pojazdu</param>
         /// <param name="depotsCombinations">taablica zawierająca zajezdnie z których mają wyjechać pojazdy.</param>
-        /// <param name="div">Przydział liczby lokacji do odwiedzenia przez każdy z pojazdów.</param>
-        void TestDepotsCombinations(int n, int[] depotsCombinations, int[] div)
+        /// <param name="numLocForVeh">Przydział liczby lokacji do odwiedzenia przez każdy z pojazdów.</param>
+        void TestDepotsCombinations(int n, int[] depotsCombinations, int[] numLocForVeh)
         {
             // Jeżeli dla każdego pojazdu jest już przypisana zajezdnia z której ma wyjechać to przechodzimy do kolejnego etapu.
             if (n >= vehiclesCount)
             {
                 // Przydział lokacji dla pojazdów.
-                SplitVisits(depotsCombinations, div);
+                SplitVisits(depotsCombinations, numLocForVeh);
                 return;
             }
 
@@ -310,7 +312,7 @@ namespace DVRP
 
                 // Wywoływanie metody dla pojazdu 'num + 1'.
                 depotsCombinations[n] = d;
-                TestDepotsCombinations(n + 1, depotsCombinations, div);
+                TestDepotsCombinations(n + 1, depotsCombinations, numLocForVeh);
             }
         }
 
@@ -318,170 +320,251 @@ namespace DVRP
         /// Sprawdza każdą kombinację lokacji dla każdego pojazdu, zgodznie z przydziałem liczby loacji dla pojazdów.
         /// </summary>
         /// <param name="depotsCombinations">Zajezdnie z których musi wyjechać każdy z pojazdów.</param>
-        /// <param name="div">Liczba lokacji, którą musi odwiedzić każdy pojazd.</param>
-        void SplitVisits(int[] depotsCombinations, int[] div)
+        /// <param name="numLocationsForVehicles">Liczba lokacji, którą musi odwiedzić każdy pojazd.</param>
+        void SplitVisits(int[] depotsCombinations, int[] numLocationsForVehicles)
         {
-            // splits - tablica podzialow dla kazdego z pociagow
-            // splits[0] - ilosc punktow odwiedzanych przez pociag
+            // Lokacje do odwiedzenia przez pojazdy (splits[pojazd][numer] = lokacja).
             int[][] splits = new int[vehiclesCount][];
+
             for (int i = 0; i < vehiclesCount; ++i)
-                splits[i] = new int[div[i]];
-            // wywolanie dla kazdego 
-            VisitsForEachVehicle(0, vehiclesCount, new bool[visitsCount], splits, div, depotsCombinations);
+                splits[i] = new int[numLocationsForVehicles[i]];
+            
+            // Przydzielanie wizyt dla pojazdów.
+            VisitsForEachVehicle(0, new bool[visitsCount], splits, numLocationsForVehicles, depotsCombinations);
         }
 
-        void VisitsForEachVehicle(int veh, int num_veh, bool[] free_visits, int[][] splits, int[] div, int[] depotsCombinations)
+        /// <summary>
+        /// Przydzielanie wizyt dla pojazdów.
+        /// Każdy pojazd będzie miał przydzielone wszystkie kombinacje odpowiedniej liczby lokacji do odwiedzenia.
+        /// </summary>
+        /// <param name="vehicle">Numer pojazdu, dla którego przydzielane są lokacje.</param>
+        /// <param name="taken_visits">Tablica do oznaczanie już przypisanych lokacji.</param>
+        /// <param name="splits">Przydział lokacji dla pojazdów. Tablica do wypełnienia.</param>
+        /// <param name="numLocationsForVehicles">Liczba lokacji do odwiedzenia przez każdy pojazd.</param>
+        /// <param name="depotsCombinations">Zajezdnie z których mają wyjechać pojazdy.</param>
+        void VisitsForEachVehicle(int vehicle, bool[] taken_visits, int[][] splits, int[] numLocationsForVehicles, int[] depotsCombinations)
         {
-            if (veh == 0)
+            if (vehicle == 0)
                 Console.WriteLine("==================================");
-            if (veh == 1)
+            if (vehicle == 1)
                 Console.WriteLine(string.Join("; ", splits.Select(x => string.Join(" ", x.Select(y => y.ToString())))));
 
-            // jak wszystkie sie podzielily, to licz tsp
-            if (veh >= num_veh)
+            // Jeżeli wszystkie pojazdy mają przydzielone wizyty to liczymy TSP.
+            if (vehicle >= vehiclesCount)
             {
-                // wynik z algo
+                // Liczenie TSP. Zwracany najmniejszy wynik.
                 Tuple<float, List<int>[], List<float>[]> ret = TSPWrapper(depotsCombinations, splits);
+
+                // Jeżeli wynik jest mniejszy niż poprzedni najmniejszy to zmieniamy.
                 if (ret.Item1 < min_cost)
                 {
                     min_cost = ret.Item1;
                     cycles = ret.Item2;
                     times = ret.Item3;
                 }
+
                 return;
             }
 
             if (isTimeout)
                 throw new TimeoutException();
 
-            // jak nie, to dziel
-            VisitsCombinationForVehicle(0, div[veh], 0, splits, veh, free_visits, div, depotsCombinations);
+            // Wybieranie lokacji dla pojazdu 'vehicle'.
+            VisitsCombinationForVehicle(0, 0, splits, vehicle, taken_visits, numLocationsForVehicles, depotsCombinations);
         }
 
-        // visit - numer wizyty dla danego pojazdu, veh_visits - powinienien odwiedziec lokacji, num_visits - musi byc 
-        // odwiedzono lokacji sumarycznie,
-        // start - poczatek sprawdzania, veh - numer pojazdu, free_visits - tablica dostepnosci punktow
-        void VisitsCombinationForVehicle(int visit, int veh_visits, int start, int[][] splits, int veh, bool[] free_visits, int[] div, int[] combinations)
+        /// <summary>
+        /// Kombinacja wizyt dla pojazdu.
+        /// Przydziela pojazdowi kombinacje odpowiedniej liczby wizyt.
+        /// </summary>
+        /// <param name="visit">Numer wizyty dla pojazdu.</param>
+        /// <param name="start">Indeks wizyty. Zaczyna szukać od tej wizyty pomijając poprzednie - sprawdzone wcześniej.</param>
+        /// <param name="splits">Przydzielone wizyty - tablica do wypełnienia.</param>
+        /// <param name="vehicle">Numer pojazdu, dla którego przydzielane są wizyty.</param>
+        /// <param name="taken_visits">Wizyty już zajęte.</param>
+        /// <param name="numLocationsForVehicle">Liczba lokacji do odwiedzenia przez każdy pojazd.</param>
+        /// <param name="depotsCombinations">Zajezdnie, z których ma wyruszyć każdy z pojazdów.</param>
+        void VisitsCombinationForVehicle(int visit, int start, int[][] splits, int vehicle, bool[] taken_visits, int[] numLocationsForVehicle, int[] depotsCombinations)
         {
-            // jezeli przydzielil swoje, to dziel dla nastepnego
-            if (visit >= veh_visits)
+            // Jeżeli wszystkie wizyty przydzielone dla tego pojazdu, to przydzielamy dla nastpnego.
+            if (visit >= numLocationsForVehicle[vehicle])
             {
-                VisitsForEachVehicle(veh + 1, vehiclesCount, free_visits, splits, div, combinations);
+                VisitsForEachVehicle(vehicle + 1, taken_visits, splits, numLocationsForVehicle, depotsCombinations);
                 return;
             }
 
+            // Każda dostępna i nie sprawdzona wizyta jest wpisywana jako wizyta numer 'visit' dla pojazdu 'vehicle'.
             for (int i = start; i < visitsCount; ++i)
             {
-                // jezeli juz zajety, to pierdol sie
-                if (free_visits[i])
+                // Jeżeli już zajęta to pomijamy.
+                if (taken_visits[i])
                     continue;
 
-                splits[veh][visit] = i;
-                free_visits[i] = true;
+                splits[vehicle][visit] = i;
+                taken_visits[i] = true;
 
-                // kolejny punkt
-                VisitsCombinationForVehicle(visit + 1, veh_visits, i + 1, splits, veh, free_visits, div, combinations);
+                // Przydział kolejnej wizyty dla pojazdu.
+                VisitsCombinationForVehicle(visit + 1, i + 1, splits, vehicle, taken_visits, numLocationsForVehicle, depotsCombinations);
 
-                free_visits[i] = false;
+                taken_visits[i] = false;
             }
         }
 
-        // ------------------------------------- wrapper dla TSP (nie trzeba bedzie wywolywac dla kazdego osobno)
-        // combinations - mhmhm, poczatki sciezek :)
-        Tuple<float, List<int>[], List<float>[]> TSPWrapper(int[] combinations, int[][] splits)
+        /// <summary>
+        /// Liczy TSP dla każdego z pojazdów.
+        /// Szuka ścieżkek o najmniejszej wadze.
+        /// </summary>
+        /// <param name="depotsCombinations">Zajezdnie, z których wyjedzie każdy z pojazdów.</param>
+        /// <param name="visitsSplits">Przydział wizyt do odwiedzenia przez każdy z pojazdów.</param>
+        /// <returns>Najmniejszy koszt, ścieżka i czasy odwiedzania lokacji.</returns>
+        Tuple<float, List<int>[], List<float>[]> TSPWrapper(int[] depotsCombinations, int[][] visitsSplits)
         {
             float total_min_cost = 0;
             float min_cost;
+
+            // Ścieżki i czasy odwiedzin.
             List<int>[] cycle = new List<int>[vehiclesCount];
-            //List<int>[] path = new List<int>[vehiclesCount];
             List<float>[] times = new List<float>[vehiclesCount];
 
+            // Dla każdego pojazdu liczone TSP z ograniczeniami.
             for (int i = 0; i < vehiclesCount; ++i)
             {
                 min_cost = Single.MaxValue;
-                bool[] to_visit = new bool[visitsCount]; //new bool[splits[i].Length];
-                //cycle[i] = new int[splits[i].Length];
-                // path[i] = new List<int>();
-                //List<int> tmp_path = new List<int>(); tmp_path.Add(depots[combinations[i]]);
+
+                // Lokacje do odwiedzenia.
+                bool[] to_visit = new bool[visitsCount];
+
+                // Tymczasowy cykl. Po wypełnieniu porównywany z najmniejszym lokalnym (dla pojazdu).
                 int[] tmp_cycle = new int[2 * visitsCount + 1];
-                tmp_cycle[0] = depots[combinations[i]];
+                tmp_cycle[0] = depots[depotsCombinations[i]];
+
+                // Tymczasowe czasy odwiedzin.
                 float[] tmp_times = new float[2 * visitsCount + 1];
-                tmp_times[0] = depotsTimeWindow[combinations[i]].Item1;
-                FTSPFS(depots[combinations[i]], splits[i], to_visit, 0, 0, ref min_cost, tmp_cycle, 1, ref cycle[i], tmp_times, ref times[i],
-                    depotsTimeWindow[combinations[i]].Item1, capacities/*, tmp_path, ref path[i]*/);
+                tmp_times[0] = depotsTimeWindow[depotsCombinations[i]].Item1;
+
+                // Wywołanie TSP dla pojazdu 'i'.
+                FTSPFS(depots[depotsCombinations[i]], visitsSplits[i], to_visit, 0, 0, ref min_cost, tmp_cycle, 1, ref cycle[i], 
+                    tmp_times, ref times[i], depotsTimeWindow[depotsCombinations[i]].Item1, capacities);
+
                 total_min_cost += min_cost;
+                
+                // Jeżeli koszt nie będzie już mniejszy to przerywamy.
                 if (total_min_cost >= Single.MaxValue)
                     break;
             }
 
+            // Zwracanie ścieżki o najmniejszej wadze.
             return new Tuple<float, List<int>[], List<float>[]>(total_min_cost, cycle, times);
         }
 
-        //--------------------------------------FTSTPFS capitan (-:
-        // cos musi z czasem jescze byc dodane pewnie
+        /// <summary>
+        /// TSP z ograniczeniami liczone dla jednego pojazdu.
+        /// </summary>
+        /// <param name="v">Wierzchołek źrófłowy (podany jako lokacja - nie wizyta!).</param>
+        /// <param name="to_visit">Wizyty do odwiedzenia.</param>
+        /// <param name="vis">Lokacje odwiedzone/nieodwiedzone.</param>
+        /// <param name="visited">Liczba odwiedzonych lokacji.</param>
+        /// <param name="len">Długość ścieżki.</param>
+        /// <param name="min_len">Minimalna ścieżka dla tego pojazdu.</param>
+        /// <param name="tmp_cycle">Znajdowana ścieżka.</param>
+        /// <param name="cycle_pos">Aktualna pozycja na ścieżce.</param>
+        /// <param name="cycle">Najlepsza ścieżka dla tego pojazdu.</param>
+        /// <param name="tmp_times">Znajdowane czasy dojazdów do lokacji na ścieżce dla pojazdu.</param>
+        /// <param name="times">Najlepsze czasy dojazdu dla tego pojazdu.</param>
+        /// <param name="time">Aktualny czas pojazdu.</param>
+        /// <param name="cap">Aktualna waga ładunku w pojeździe.</param>
         void FTSPFS(int v, int[] to_visit, bool[] vis, int visited, float len, ref float min_len, int [] tmp_cycle, int cycle_pos, ref List<int> cycle, float[] tmp_times, ref List<float> times, float time, float cap/*, List<int> path, ref List<int> min_path*/)
         {
+            // Jeżeli waga ścieżki jest większa niż aktualna najmniejsza to wracamy.
             if (len > min_len)
                 return;
 
+            // Jeżeli wszystkie już odwiedzone.
             if (visited == to_visit.Length)
             {
-                // TODO: dodanie elementu w miejscu ostatniej zajezdni
-                // dodaj nowy najlepszy cykl
+                // Szukanie najbliższej zajezdni, do której można wrócić (która jest jeszcze otwarta).
                 for (int i = 0; i < depotsCount; ++i)
+                {
                     if (time + weights[v, depots[i]] <= depotsTimeWindow[i].Item2 && min_len > len + weights[v, depots[i]])
                     {
+                        // Dodawanie nowej najmniejszej ścieżki i czasów.
                         min_len = len + weights[v, depots[i]];
-                        /*path.Add(depots[i]);
-                        min_path = new List<int>(path);
-                        path.RemoveAt(path.Count - 1);*/
                         tmp_cycle[cycle_pos] = depots[i];
                         tmp_times[cycle_pos] = time + weights[v, depots[i]];
                         cycle = new List<int>(tmp_cycle.Take(cycle_pos + 1));
                         times = new List<float>(tmp_times.Take(cycle_pos + 1));
                     }
+                }
+
                 return;
             }
 
             if (isTimeout)
                 throw new TimeoutException();
 
-            // dla kazdego sasiada
-            // mozna dodac sprawdzanie zajezdni i odrzucac, jak dla wszystkich juz sie nie da dojechac 
-            // (poki co jest pomysl tylko na rozwiazanie tego problemu)
+            // Dla każdej lokacji do odwiedzenia przez pojazd.
             foreach (int w in to_visit)
             {
-                if (!vis[w] /*&& visitAvailableTime[w] < time*/)
+                // Jeżeli nie została już odwiedzona.
+                if (!vis[w])
                 {
                     float www = 0;
                     int last_v = v;
                     float last_cap = cap;
-                    // TODO: pierwszy depot, musi byc zmienione
+                    
+                    // Jeżeli pojazd ma za mało ładunku to jedziemy do zajezdni.
                     if (cap + visitsWeight[w] < 0)
                     {
+                        float depot_len = float.MaxValue;
+                        for (int i = 0; i < depotsCount; ++i)
+                        {
+                            if (time + weights[last_v, depots[i]] <= depotsTimeWindow[i].Item2 && depot_len > weights[last_v, depots[i]] + weights[depots[i], visits[w]])
+                            {
+                                depot_len = weights[last_v, depots[i]] + weights[depots[i], visits[w]];
+
+                                // Waga do zajezdni.
+                                www = weights[last_v, depots[i]];
+
+                                // v jest równy zajezdni.
+                                v = depots[i];
+
+                                // Dodanie do ścieżki i czasu.
+                                tmp_times[cycle_pos] = time + www;
+                                tmp_cycle[cycle_pos] = v;
+                            }
+                        }
+
+                        // Jeżeli nie znaleziono zajezdni.
+                        if (depot_len == float.MaxValue)
+                        {
+                            v = last_v;
+                            continue;
+                        }
+
+                        // Dodanie do cyklu.
+                        cycle_pos++;
+
+                        // Wypełnienie pojazdu.
                         cap = capacities;
-                        www = weights[v, depots[0]];
-                        v = depots[0];
-                        tmp_times[cycle_pos] = time + www;
-                        tmp_cycle[cycle_pos++] = v;
-                        //path.Add(v);
                     }
 
-                    // czekaj na dostepnosc
+                    // Jeżeli wizyta nie jest dostępna to czekamy.
                     if (visitAvailableTime[w] > time)
                         time = visitAvailableTime[w];
 
                     vis[w] = true;
-                    //cycle[visited] = w;
-                    //path.Add(visits[w]);
+                    
+                    // Dodanie kolejnego punktu do ścieżki i czasu.
                     tmp_cycle[cycle_pos] = visits[w];
                     tmp_times[cycle_pos] = time + weights[v, visits[w]] + www;
-                    FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]] + www, ref min_len, tmp_cycle, cycle_pos + 1, ref cycle, tmp_times, ref times,
-                        time + weights[v, visits[w]] + visitsDuration[w] + www, cap + visitsWeight[w]/*, path, ref min_path*/);
-                    //path.RemoveAt(path.Count - 1);
+                    
+                    // Wywołanie TSP dla kolejnego punktu.
+                    FTSPFS(visits[w], to_visit, vis, visited + 1, len + weights[v, visits[w]] + www, ref min_len, tmp_cycle, 
+                        cycle_pos + 1, ref cycle, tmp_times, ref times, time + weights[v, visits[w]] + visitsDuration[w] + www, cap + visitsWeight[w]);
+                   
+                    // Jeżeli odwiedziliśmy zajezdnię to się cofamy.
                     if (www != 0)
                     {
-                        //path.RemoveAt(path.Count - 1);
                         v = last_v;
                         cap = last_cap;
                         cycle_pos--;
@@ -492,22 +575,10 @@ namespace DVRP
             }
         }
 
-        // ---------------------------- odpowiedzialna za przydzial lokacji, przerobic ze wzgedu na chujowow implementacje
-        // sposob dzialania: [3, 1, 2]
-        // splited[0] = wszystkie podzialy dla 3, splited[1] = wszystkie podzaily dla 1, splited[2] = wszystkie podzialy dla 2
-        // wiec trzeb abedzie potem sprawdzac, czy sa wzajemnie pelne
-        void SplitLocations(int[] div, out List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>> splited)
-        {
-            splited = new List<System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<int>>>();
-            foreach (int d in div)
-            {
-                var res = Combination.Combinations(visits, d);
-                splited.Add(res);
-            }
-        }
-
-        //--------------------------------------Divide
-
+        /// <summary>
+        /// Metoda wywoływana w konstruktorze. Parsuje dane i wypełnia pola klasy DVRP.
+        /// </summary>
+        /// <param name="data">Dane problemu.</param>
         private void SetProblemData(byte[] data)
         {
             MemoryStream stream = new MemoryStream(data);
@@ -517,7 +588,7 @@ namespace DVRP
             vehiclesCount = problemParser.NumVehicles;
             depotsCount = problemParser.NumDepots;
             visitsCount = problemParser.NumVisits;
-            locationsCount = depotsCount + visitsCount;//problemParser.NumLocations;
+            locationsCount = depotsCount + visitsCount;
 
             if (problemParser.EdgeWeights != null)
                 weights = problemParser.EdgeWeights;
@@ -573,35 +644,26 @@ namespace DVRP
             }
         }
 
+        /// <summary>
+        /// Podział problemu na podproblemy.
+        /// Podział jest wykonywany na zasadzie podziału liczby na składniki. W tym przypadku liczbą jest liczba lokacji,
+        /// a składnikami na ile należy ją podzielić liczba pojazdów. Dzięki temu uzyskamy listę tablic zawierających liczbę
+        /// lokacji do odwiedzenia przez kazdy z pojazdów.
+        /// Dla przykładowego problemu 3 pojazdów i 5 lokacji uzyskamy:
+        /// [5, 0, 0]
+        /// [4, 1, 0]
+        /// [3, 2, 0]
+        /// [3, 1, 1]
+        /// [2, 2, 1]
+        /// 
+        /// Pojazdy są nierozróżnialne, więc zbiory [x, y, z], [z, y, x], [y, z, x] itd będą takie same.
+        /// Algorytm dodatkowo tworzy listy podproblemów dla odpowiedniej liczby CN.
+        /// </summary>
+        /// <param name="threadCount">Liczba dostępnych wątków.</param>
+        /// <returns>Zserializowany podział problemów.</returns>
         public override byte[][] DivideProblem(int threadCount)
         {
             byte[][] ret = null;
-
-            var f = new StreamWriter("a.txt", true);
-
-            for (int i = 0; i < visitsCount; ++i)
-                f.Write(i + "\t");
-            f.WriteLine();
-            for (int i = 0; i < visitsCount; ++i)
-                f.Write(visitAvailableTime[i] + "\t");
-            f.WriteLine();
-            f.WriteLine();
-            f.Write("\t");
-            for (int i = 0; i < locationsCount; ++i)
-                f.Write(i + "\t");
-            f.WriteLine();
-            for (int i = 0; i < locationsCount; ++i)
-            {
-                f.Write(i + ":\t");
-                for (int j = 0; j < locationsCount; ++j)
-                {
-                    f.Write("{0:N2}\t", weights[i, j]);
-                }
-
-                f.WriteLine();
-            }
-
-            f.Close();
 
             try
             {
@@ -609,32 +671,31 @@ namespace DVRP
 
                 List<int[]> list = new List<int[]>();
 
-                if (visitsCount <= 40)
-                    GenerateSets(visitsCount, vehiclesCount, list, visitsCount, 0, new int[vehiclesCount], 0);
-                else
-                {
-                    int w = visitsCount <= 60 ? 4 : (visitsCount <= 100 ? 3 : 2);
-                    int vehiclesLimit = vehiclesCount <= w ? vehiclesCount : w;
-                    GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], vehiclesCount - vehiclesLimit);
-                }
+                //if (visitsCount <= 40)
+                // Generowanie zbiorów.
+                GenerateSets(visitsCount, vehiclesCount, list, visitsCount, 0, new int[vehiclesCount]/*, 0*/);
+                //else
+                //{
+                //    int w = visitsCount <= 60 ? 4 : (visitsCount <= 100 ? 3 : 2);
+                //    int vehiclesLimit = vehiclesCount <= w ? vehiclesCount : w;
+                //    GenerateSets(visitsCount, vehiclesLimit, list, visitsCount, 0, new int[vehiclesLimit], vehiclesCount - vehiclesLimit);
+                //}
 
-                //Console.WriteLine(list.Count);
-                ////foreach (int[] a in list)
-                ////{
-                ////    foreach (int i in a)
-                ////        Console.Write(i + " ");
-                ////    Console.WriteLine();
-                ////}
-
+                // Problem zostanie podzielony na tc części.
                 int tc = threadCount < list.Count ? threadCount : list.Count;
 
                 List<int[]>[] r = new List<int[]>[tc];
+
                 for (int i = 0; i < tc; ++i)
                 {
                     r[i] = new List<int[]>();
                 }
+
                 Random rand = new Random();
                 int n = 0;
+                
+                // Podział problemów. Podział losowy - może nie być optymalnie, jednak jest wystarczająco, ponieważ nie wiemy
+                // ile czasu będzie rozwiązywać się każda grupa.
                 while (list.Count > 0)
                 {
                     int x = rand.Next(list.Count);
@@ -645,13 +706,16 @@ namespace DVRP
                         n = 0;
                 }
 
+                // Serializacja danych.
                 ret = new byte[tc][];
+                
                 for (int i = 0; i < tc; ++i)
                 {
                     MemoryStream s = new MemoryStream();
                     new BinaryFormatter().Serialize(s, r[i]);
                     ret[i] = s.ToArray();
                 }
+
                 PartialProblems = ret;
 
                 State = TaskSolverState.Idle;
@@ -660,7 +724,7 @@ namespace DVRP
             }
             catch (Exception e)
             {
-                State = TaskSolverState.Error;
+                State = TaskSolverState.Error | TaskSolverState.Idle;
                 if (ErrorOccured != null)
                     ErrorOccured(this, new UnhandledExceptionEventArgs(e, true));
             }
@@ -668,25 +732,27 @@ namespace DVRP
             return ret;
         }
 
+        /// <summary>
+        /// Inicjalizacja danych.
+        /// </summary>
         private void Initialize()
         {
+            // Obliczanie wag krawędzi.
             if (weights == null)
             {
                 weights = new float[locationsCount, locationsCount];
-                bool isManhattan = false;
 
                 for (int i = 0; i < locationsCount; ++i)
                 {
                     for (int j = 0; j < locationsCount; ++j)
                     {
-                        weights[i, j] = //isManhattan ?
-                            //(Math.Abs(locationsCoords[i].X - locationsCoords[j].X) + Math.Abs(locationsCoords[i].Y - locationsCoords[j].Y)) :
-                            (float)(Math.Sqrt(Math.Pow(locationsCoords[i].X - locationsCoords[j].X, 2) + Math.Pow(locationsCoords[i].Y - locationsCoords[j].Y, 2)));
+                        weights[i, j] = (float)(Math.Sqrt(Math.Pow(locationsCoords[i].X - locationsCoords[j].X, 2) 
+                            + Math.Pow(locationsCoords[i].Y - locationsCoords[j].Y, 2)));
                     }
                 }
             }
-            // init cut-off stuff
 
+            // Warunek cut-off time.
             float max_time = Single.MinValue;
             foreach (Tuple<float, float> time in depotsTimeWindow)
                 if (max_time < time.Item2)
@@ -699,21 +765,27 @@ namespace DVRP
                     visitAvailableTime[i] = 0;
         }
 
-        private void GenerateSets(int n, int k, List<int[]> list, int left, int i, int[] tmp, int more)
+        /// <summary>
+        /// Generowanie zbiorów podproblemów.
+        /// </summary>
+        /// <param name="n">Liczba wizyt.</param>
+        /// <param name="k">Liczba pojazdów.</param>
+        /// <param name="list">Lista podzbiorów.</param>
+        /// <param name="left">Pozostała liczba wizyt do przydzielenia.</param>
+        /// <param name="i">Aktualny pojazd.</param>
+        /// <param name="tmp">Tymczasowy zbiów z podziałem.</param>
+        private void GenerateSets(int n, int k, List<int[]> list, int left, int i, int[] tmp/*, int more*/)
         {
-            //if (i != 0 && tmp[i - 1] < left)
-            //    return;
-
             if (i == k)
             {
-                if (/*isMore ||*/ left == 0 || tmp[i - 1] * more >= left)
+                if (left == 0 /*|| tmp[i - 1] * more >= left*/)
                     list.Add((int[])tmp.Clone());
                 return;
             }
 
+            // Nierozróżnialność pojazdów - kolejna liczba nie większa niż poprzednia.
             int put = (i == 0 || tmp[i - 1] >= left) ? left : tmp[i - 1];
             left = left - put;
-
 
             while (put >= 0)
             {
@@ -721,31 +793,34 @@ namespace DVRP
                     return;
 
                 tmp[i] = put;
-                //if(i == 0 || tmp[i-1] >= put)
-                GenerateSets(n, k, list, left, i + 1, tmp, more);
+                
+                GenerateSets(n, k, list, left, i + 1, tmp/*, more*/);
                 put--;
                 left++;
             }
         }
 
-
-        //--------------------------------------Merge
-
+        /// <summary>
+        /// Wybieranie najleszego wyniku z listy wyników.
+        /// </summary>
+        /// <param name="solutions">Rozwiązania.</param>
         public override void MergeSolution(byte[][] solutions)
         {
             try
             {
                 State = TaskSolverState.Merging;
 
+                // Deserializacja.
                 BinaryFormatter bf = new BinaryFormatter();
                 List<SolutionContainer> sl = new List<SolutionContainer>();
-                //List<float> min_costs = new List<float>();
 
                 foreach (byte[] x in solutions)
                     sl.Add((SolutionContainer)bf.Deserialize(new MemoryStream(x)));
 
+                // Wybieranie minimum.
                 SolutionContainer mc = sl.Min();
 
+                // Serializacja.
                 MemoryStream ms = new MemoryStream();
                 bf.Serialize(ms, mc);
                 Solution = ms.ToArray();
@@ -756,7 +831,7 @@ namespace DVRP
             }
             catch (Exception e)
             {
-                State = TaskSolverState.Error;
+                State = TaskSolverState.Error | TaskSolverState.Idle;
                 if (ErrorOccured != null)
                     ErrorOccured(this, new UnhandledExceptionEventArgs(e, true));
             }
@@ -764,17 +839,32 @@ namespace DVRP
             return;
         }
 
+        /// <summary>
+        /// Nazwa problemu.
+        /// </summary>
         public override string Name
         {
             get { return "DVRP"; }
         }
 
+        /// <summary>
+        /// Wywołanie w przypadku błędu.
+        /// </summary>
         public override event UnhandledExceptionEventHandler ErrorOccured;
 
+        /// <summary>
+        /// Wywołanie w przypadku zakończenia dzielenia problemu.
+        /// </summary>
         public override event ComputationsFinishedEventHandler ProblemDividingFinished;
 
+        /// <summary>
+        /// Wywołanie w przypadku zakończenia rozwiązywania problemu.
+        /// </summary>
         public override event ComputationsFinishedEventHandler ProblemSolvingFinished;
 
+        /// <summary>
+        /// Wywołanie w przypadku zakończnenia łączenia rozwiązań.
+        /// </summary>
         public override event ComputationsFinishedEventHandler SolutionsMergingFinished;
     }
 }

@@ -20,23 +20,19 @@ namespace DVRP
             byte[] data = ms.ToArray();
 
             DVRP dvrpDivide = new DVRP(data);
-            dvrpDivide.DivideProblem(10000);
+            dvrpDivide.DivideProblem(1000);
+
+            Console.WriteLine("Sets: " + dvrpDivide.PartialProblems.Length);
+            Console.ReadKey();
 
             List<byte[]> ans = new List<byte[]>();
             foreach (var x in dvrpDivide.PartialProblems)
             {
                 DVRP dvrpSolve = new DVRP(data);
-                dvrpSolve.Solve(x, new TimeSpan(2, 0, 0));
+                dvrpSolve.Solve(x, new TimeSpan(3, 0, 0));
                 ans.Add(dvrpSolve.Solution);
             }
 
-            //DVRP dvrpSolve = new DVRP(data);
-            //dvrpSolve.Solve(dvrpDivide.PartialProblems[0], new TimeSpan(2, 0, 0));
-            //ans.Add(dvrpSolve.Solution);
-
-            //dvrpSolve = new DVRP(data);
-            //dvrpSolve.Solve(dvrpDivide.PartialProblems[1], new TimeSpan(2, 0, 0));
-            //ans.Add(dvrpSolve.Solution);
 
             DVRP dvrpMerge = new DVRP(data);
             dvrpMerge.MergeSolution(ans.ToArray());
@@ -52,19 +48,6 @@ namespace DVRP
 
             TimeSpan ts = DateTime.Now - t;
             Console.WriteLine(ts.ToString());
-
-            //DVRP inst = DVRP.GetInstance(false);
-            //MemoryStream ms = new MemoryStream();
-            //System.IO.File.OpenRead("okul12D.vrp").CopyTo(ms);
-            //byte[] data = ms.ToArray();
-            //var dp = inst.DivideProblem(data, 10000);
-            //List<byte[]> ans = new List<byte[]>();
-            //foreach (var x in dp)
-            //    ans.Add(inst.Solve(data, x, new TimeSpan(10, 0, 0)));
-
-            //byte[] ans_byte = inst.MergeSolution(ans.ToArray());
-            //float a = (float)new BinaryFormatter().Deserialize(new MemoryStream(ans_byte));
-            //Console.WriteLine("MinCost = " + a);
         }
     }
 }
