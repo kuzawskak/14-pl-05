@@ -166,6 +166,16 @@ namespace DVRP
         private Task backgroundTask;
 
         /// <summary>
+        /// Pole przechowujące nowy cykl.
+        /// </summary>
+        List<int>[] new_cycle;
+
+        /// <summary>
+        /// Pole przechowujące nowe czasy przyjazdu.
+        /// </summary>
+        List<float>[] new_times;
+
+        /// <summary>
         /// Konstrukcja nowego TaskSolvera.
         /// </summary>
         /// <param name="data">Dane problemu.</param>
@@ -240,7 +250,7 @@ namespace DVRP
                     TestDepotsCombinations(0, new int[vehiclesCount], div);
                 }
 
-                Console.WriteLine();
+                //Console.WriteLine();
                 Console.WriteLine(min_cost);
 
                 // Zapisywanie najlepszego rozwiązania.
@@ -330,7 +340,7 @@ namespace DVRP
                 splits[i] = new int[numLocationsForVehicles[i]];
             
             // Przydzielanie wizyt dla pojazdów.
-            VisitsForEachVehicle(0, new bool[visitsCount], splits, numLocationsForVehicles, depotsCombinations);
+            VisitsForEachVehicle(0, new bool[visitsCount], splits, numLocationsForVehicles, depotsCombinations, 0);
         }
 
         /// <summary>
@@ -342,25 +352,29 @@ namespace DVRP
         /// <param name="splits">Przydział lokacji dla pojazdów. Tablica do wypełnienia.</param>
         /// <param name="numLocationsForVehicles">Liczba lokacji do odwiedzenia przez każdy pojazd.</param>
         /// <param name="depotsCombinations">Zajezdnie z których mają wyjechać pojazdy.</param>
-        void VisitsForEachVehicle(int vehicle, bool[] taken_visits, int[][] splits, int[] numLocationsForVehicles, int[] depotsCombinations)
+        /// <param name="totalMinCost">Minimalny koszt ścieżki.</param>
+        void VisitsForEachVehicle(int vehicle, bool[] taken_visits, int[][] splits, int[] numLocationsForVehicles, int[] depotsCombinations, float totalMinCost)
         {
-            if (vehicle == 0)
-                Console.WriteLine("==================================");
-            if (vehicle == 1)
-                Console.WriteLine(string.Join("; ", splits.Select(x => string.Join(" ", x.Select(y => y.ToString())))));
+            //if (vehicle == 0)
+            //    Console.WriteLine("==================================");
+            //if (vehicle == 1)
+            //    Console.WriteLine(string.Join("; ", splits.Select(x => string.Join(" ", x.Select(y => y.ToString())))));
 
-            // Jeżeli wszystkie pojazdy mają przydzielone wizyty to liczymy TSP.
+            // Jeżeli wszystkie pojazdy mają policzone TSP.
             if (vehicle >= vehiclesCount)
             {
-                // Liczenie TSP. Zwracany najmniejszy wynik.
-                Tuple<float, List<int>[], List<float>[]> ret = TSPWrapper(depotsCombinations, splits);
-
-                // Jeżeli wynik jest mniejszy niż poprzedni najmniejszy to zmieniamy.
-                if (ret.Item1 < min_cost)
+                // Jeżeli nowy najmniejszy koszt, to zapisujemy.
+                if (totalMinCost < min_cost)
                 {
-                    min_cost = ret.Item1;
-                    cycles = ret.Item2;
-                    times = ret.Item3;
+                    min_cost = totalMinCost;
+                    cycles = new List<int>[vehiclesCount];
+                    times = new List<float>[vehiclesCount];
+
+                    for (int i = 0; i < vehiclesCount; ++i)
+                    {
+                        cycles[i] = new List<int>(new_cycle[i]);
+                        times[i] = new List<float>(new_times[i]);
+                    }
                 }
 
                 return;
@@ -370,7 +384,7 @@ namespace DVRP
                 throw new TimeoutException();
 
             // Wybieranie lokacji dla pojazdu 'vehicle'.
-            VisitsCombinationForVehicle(0, 0, splits, vehicle, taken_visits, numLocationsForVehicles, depotsCombinations);
+            VisitsCombinationForVehicle(0, 0, splits, vehicle, taken_visits, numLocationsForVehicles, depotsCombinations, totalMinCost);
         }
 
         /// <summary>
@@ -384,12 +398,35 @@ namespace DVRP
         /// <param name="taken_visits">Wizyty już zajęte.</param>
         /// <param name="numLocationsForVehicle">Liczba lokacji do odwiedzenia przez każdy pojazd.</param>
         /// <param name="depotsCombinations">Zajezdnie, z których ma wyruszyć każdy z pojazdów.</param>
-        void VisitsCombinationForVehicle(int visit, int start, int[][] splits, int vehicle, bool[] taken_visits, int[] numLocationsForVehicle, int[] depotsCombinations)
+        /// <param name="totalMinCost">Minimalny koszt ścieżki.</param>
+        void VisitsCombinationForVehicle(int visit, int start, int[][] splits, int vehicle, bool[] taken_visits, int[] numLocationsForVehicle, int[] depotsCombinations, float totalMinCost)
         {
-            // Jeżeli wszystkie wizyty przydzielone dla tego pojazdu, to przydzielamy dla nastpnego.
+            // Jeżeli wszystkie wizyty przydzielone dla tego pojazdu, to liczymy TSP i przydzielamy dla nastpnego.
             if (visit >= numLocationsForVehicle[vehicle])
             {
-                VisitsForEachVehicle(vehicle + 1, taken_visits, splits, numLocationsForVehicle, depotsCombinations);
+                float minCost = Single.MaxValue;
+
+                // Tymczasowy cykl. Po wypełnieniu porównywany z najmniejszym lokalnym (dla pojazdu).
+                int[] tmp_cycle = new int[2 * visitsCount + 1];
+                tmp_cycle[0] = depots[depotsCombinations[vehicle]];
+                new_cycle[vehicle] = null;
+
+                // Tymczasowe czasy odwiedzin.
+                float[] tmp_times = new float[2 * visitsCount + 1];
+                tmp_times[0] = depotsTimeWindow[depotsCombinations[vehicle]].Item1;
+
+                // Wywołanie TSP dla pojazdu 'vehicle'.
+                FTSPFS(depots[depotsCombinations[vehicle]], splits[vehicle], new bool[visitsCount], 0, 0, ref minCost,
+                    tmp_cycle, 1, ref new_cycle[vehicle], tmp_times, ref new_times[vehicle], depotsTimeWindow[depotsCombinations[vehicle]].Item1, capacities);
+
+                if (minCost + totalMinCost > Single.MaxValue)
+                    return;
+
+                if (minCost + totalMinCost > min_cost)
+                    return;
+
+                // Liczymy dla następnego.
+                VisitsForEachVehicle(vehicle + 1, taken_visits, splits, numLocationsForVehicle, depotsCombinations, minCost + totalMinCost);
                 return;
             }
 
@@ -404,57 +441,10 @@ namespace DVRP
                 taken_visits[i] = true;
 
                 // Przydział kolejnej wizyty dla pojazdu.
-                VisitsCombinationForVehicle(visit + 1, i + 1, splits, vehicle, taken_visits, numLocationsForVehicle, depotsCombinations);
+                VisitsCombinationForVehicle(visit + 1, i + 1, splits, vehicle, taken_visits, numLocationsForVehicle, depotsCombinations, totalMinCost);
 
                 taken_visits[i] = false;
             }
-        }
-
-        /// <summary>
-        /// Liczy TSP dla każdego z pojazdów.
-        /// Szuka ścieżkek o najmniejszej wadze.
-        /// </summary>
-        /// <param name="depotsCombinations">Zajezdnie, z których wyjedzie każdy z pojazdów.</param>
-        /// <param name="visitsSplits">Przydział wizyt do odwiedzenia przez każdy z pojazdów.</param>
-        /// <returns>Najmniejszy koszt, ścieżka i czasy odwiedzania lokacji.</returns>
-        Tuple<float, List<int>[], List<float>[]> TSPWrapper(int[] depotsCombinations, int[][] visitsSplits)
-        {
-            float total_min_cost = 0;
-            float min_cost;
-
-            // Ścieżki i czasy odwiedzin.
-            List<int>[] cycle = new List<int>[vehiclesCount];
-            List<float>[] times = new List<float>[vehiclesCount];
-
-            // Dla każdego pojazdu liczone TSP z ograniczeniami.
-            for (int i = 0; i < vehiclesCount; ++i)
-            {
-                min_cost = Single.MaxValue;
-
-                // Lokacje do odwiedzenia.
-                bool[] to_visit = new bool[visitsCount];
-
-                // Tymczasowy cykl. Po wypełnieniu porównywany z najmniejszym lokalnym (dla pojazdu).
-                int[] tmp_cycle = new int[2 * visitsCount + 1];
-                tmp_cycle[0] = depots[depotsCombinations[i]];
-
-                // Tymczasowe czasy odwiedzin.
-                float[] tmp_times = new float[2 * visitsCount + 1];
-                tmp_times[0] = depotsTimeWindow[depotsCombinations[i]].Item1;
-
-                // Wywołanie TSP dla pojazdu 'i'.
-                FTSPFS(depots[depotsCombinations[i]], visitsSplits[i], to_visit, 0, 0, ref min_cost, tmp_cycle, 1, ref cycle[i], 
-                    tmp_times, ref times[i], depotsTimeWindow[depotsCombinations[i]].Item1, capacities);
-
-                total_min_cost += min_cost;
-                
-                // Jeżeli koszt nie będzie już mniejszy to przerywamy.
-                if (total_min_cost >= Single.MaxValue)
-                    break;
-            }
-
-            // Zwracanie ścieżki o najmniejszej wadze.
-            return new Tuple<float, List<int>[], List<float>[]>(total_min_cost, cycle, times);
         }
 
         /// <summary>
@@ -763,6 +753,9 @@ namespace DVRP
             for (int i = 0; i < visitAvailableTime.Length; ++i)
                 if (visitAvailableTime[i] > cut_off)
                     visitAvailableTime[i] = 0;
+
+            new_cycle = new List<int>[vehiclesCount];
+            new_times = new List<float>[vehiclesCount];
         }
 
         /// <summary>
