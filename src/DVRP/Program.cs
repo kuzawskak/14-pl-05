@@ -20,8 +20,9 @@ namespace DVRP
 
             DVRP dvrpDivide = new DVRP(data);
             dvrpDivide.DivideProblem(1000);
-
+         
             Console.WriteLine("Sets: " + dvrpDivide.PartialProblems.Length);
+
             //Console.ReadKey();
 
             List<byte[]> ans = new List<byte[]>();

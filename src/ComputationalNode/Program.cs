@@ -13,13 +13,6 @@ namespace ComputationalNode
     {
         static void Main(string[] args)
         {
-
-            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
-            Type t = asm.GetType("DVRP.DVRP");
-
-            MethodInfo[] methodInfo = t.GetMethods();
-            foreach (MethodInfo mi in methodInfo)
-                Console.WriteLine(mi.ToString());
             string ip_address;
             string port;
             string thread_number;
@@ -31,7 +24,6 @@ namespace ComputationalNode
             port = Console.ReadLine();
             Console.Write("Thread number: ");
             thread_number = Console.ReadLine();
-            //TYMCZASOWE : uzytkownik wpisuje typ problemu rozwiazywanego
             Console.Write("Problem_name: ");
             problem_names.Add(Console.ReadLine());
 

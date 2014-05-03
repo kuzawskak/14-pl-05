@@ -18,7 +18,7 @@ namespace SolverComponents
     public class TMNode : SolverNode
     {
 
-        
+        DateTime start_time;
         private static List<SolverRegisteredProblem> ongoing_problems = new List<SolverRegisteredProblem>();
 
         private List<byte[]> PartialSolutions = new List<byte[]>();
@@ -67,12 +67,15 @@ namespace SolverComponents
             Type t = asm.GetType("DVRP.DVRP");
 
             var methodInfo = t.GetMethod("DivideProblem");
-            var o = Activator.CreateInstance(t);
-            object[] param = new object[2];
-            param[0] = msg.Data;
-            param[1] = (int)msg.ComputationalNodes;//computational_nodes;
+            object[] constructor_params = new object[1];
+            constructor_params[0] = msg.Data;           
+            var o = Activator.CreateInstance(t,constructor_params);
+
+            object[] param = new object[1];
+            param[0] = (int)msg.ComputationalNodes;
             byte[][] result = (byte[][])methodInfo.Invoke(o, param);
 
+            start_time = DateTime.Now;
         
             List<PartialProblem> divided_problems = new List<PartialProblem>();
             //tworzymy tyle podproblemow ile dostepnych nodów 
@@ -153,16 +156,23 @@ namespace SolverComponents
                 var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
                 Type t = asm.GetType("DVRP.DVRP");
 
-                var methodInfo = t.GetMethod("MergeSolution");//, new Type[] { typeof(byte[]), typeof(int) });
-                
-                var o = Activator.CreateInstance(t);
+                var methodInfo = t.GetMethod("MergeSolution");
+               
+                object[] constructor_param = new object[1];
+                constructor_param[0] =  msg.CommonData;
+                var o = Activator.CreateInstance(t,constructor_param);
               
                 object[] param = new object[1];
                 param[0] = PartialSolutions.ToArray();               
-                var result = methodInfo.Invoke(o, param);
-                byte[] ans = (byte[])result;
+                methodInfo.Invoke(o, param);
+                var meth = t.GetMethod("get_Solution");
 
-                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final, 1000, ans);
+
+                byte[] ans = (byte[])meth.Invoke(o, null);
+
+                TimeSpan ts = DateTime.Now - start_time;
+
+                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final,(ulong)ts.TotalSeconds, ans);
                 List<Solution> solution_to_send = new List<Solution>();
                 solution_to_send.Add(final_solution);
 
@@ -197,15 +207,13 @@ namespace SolverComponents
                 switch (parser.MessageType)
                 {
                     case MessageTypes.DivideProblem:
-                        //DivideProblem((DivideProblem)parser.Message);
-                       // Thread.Sleep(2000);
                         Console.WriteLine("TM divides and send problem to CS");
                         DivideProblemSimulation((DivideProblem)parser.Message);
                         break;
                     case MessageTypes.Solutions:
                         Console.WriteLine("TM: try merge solutions is starting");
                         //wiadomosc od CC o obliczeniach, wysylana do TM po zakonczeniu kazdego zadania
-                        Thread.Sleep(2000);
+                      //  Thread.Sleep(2000);
 
                         tryMergeSolution((Solutions)parser.Message);
                         break;

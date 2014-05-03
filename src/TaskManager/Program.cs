@@ -19,15 +19,12 @@ namespace TaskManager
             string thread_number;
             List<string> problem_names = new List<string>();
 
-          
-
             Console.Write("IP Address ");
             ip_address = Console.ReadLine();
             Console.Write("Port number: ");
             port = Console.ReadLine();
             Console.Write("Thread number: ");
             thread_number = Console.ReadLine();
-            //TYMCZASOWE : uzytkownik wpisuje typ problemu rozwiazywanego
             Console.Write("Problem_name: ");
             problem_names.Add(Console.ReadLine());
 

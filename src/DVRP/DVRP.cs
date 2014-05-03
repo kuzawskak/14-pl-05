@@ -22,8 +22,9 @@ namespace DVRP
     /// Klasa zawierająca rozwiązanie.
     /// </summary>
     [Serializable]
-    class SolutionContainer : IComparable<SolutionContainer>
+    public class SolutionContainer : IComparable<SolutionContainer>
     {
+        
         /// <summary>
         /// Minimalny koszt.
         /// </summary>

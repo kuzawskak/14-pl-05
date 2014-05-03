@@ -25,7 +25,7 @@ namespace SolverComponents
         /// </summary>
         public void SolveProblem(SolvePartialProblems msg)
         {
-
+            DateTime start_time = DateTime.Now;
             //get the problem with your id
             List <Solution> solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
@@ -33,24 +33,28 @@ namespace SolverComponents
             var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
             Type t = asm.GetType("DVRP.DVRP");
        
-            var methodInfo = t.GetMethod("Solve");//, new Type[] { typeof(byte[]), typeof(int) });
-            var o = Activator.CreateInstance(t);
+            var methodInfo = t.GetMethod("Solve");
+            object[] constructor_params = new object[1];
+            constructor_params[0] = msg.CommonData;          
+            var o = Activator.CreateInstance(t,constructor_params);
             if (problems_list != null)
             {
                 foreach (PartialProblem pp in problems_list)
                 {
                     if (methodInfo != null)
                     {
-                        object[] param = new object[3];
+                        object[] param = new object[2];
 
-                        param[0] = msg.CommonData;
-                        param[1] = pp.Data;
-                        param[2] = new TimeSpan(10, 0, 0);
+                        param[0] = pp.Data;
+                        if( msg.SolvingTimeout==null)
+                            param[1] = null;
+                        else param[1] =  new TimeSpan((long)msg.SolvingTimeout * 10000000);
 
                         byte[] result = (byte[])
                             methodInfo.Invoke(o, param);
 
-                        Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, 1000, result);
+                        TimeSpan ts = DateTime.Now - start_time;
+                        Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, (ulong)ts.TotalSeconds, result);
 
                         solution.Add(s);
                     }

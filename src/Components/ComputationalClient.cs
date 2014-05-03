@@ -10,6 +10,7 @@ using CommunicationNetwork;
 using CommunicationXML;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using DVRP;
 
 namespace Components
 {
@@ -20,7 +21,7 @@ namespace Components
         private ulong problem_id;
         private ulong? solving_timeout;
         private string problem_type;
-        byte[] problem_data;
+       // byte[] problem_data;
         private string address;
         private int port;
 
@@ -112,14 +113,35 @@ namespace Components
                                 case SolutionType.Final:
                                     computing_status = "Final";
 
-                                    double a = (double)new BinaryFormatter().Deserialize(new MemoryStream(s.Data));
-                                     Console.WriteLine("MinCost = " + a);
+                                    SolutionContainer a = (SolutionContainer)new BinaryFormatter().Deserialize(new MemoryStream(s.Data));
+                                    
+                                    Console.WriteLine();
+                                    Console.WriteLine("MinCost = " + a.MinCost);
+                                    Console.WriteLine();
+                                    foreach (var q in a.MinPath)
+                                    {
+                                        foreach (var w in q)
+                                            Console.Write(w + ", ");
+                                        Console.WriteLine();
+                                    }
+                                    Console.WriteLine();
+                                    foreach (var q in a.Times)
+                                    {
+                                        foreach (var w in q)
+                                            Console.Write(w + ", ");
+                                        Console.WriteLine();
+                                    }
+
+                                    TimeSpan ts = new TimeSpan((long)s.ComputationsTime*10000000);
+                                     Console.WriteLine("Time: " + ts.ToString());
+
                                     break;
                                 case SolutionType.Ongoing:
                                     computing_status = "OnGoing";
                                     break;
                                 case SolutionType.Partial:
                                     computing_status = "Partial";
+                                   
                                     break;
                             }
 
