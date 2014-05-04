@@ -42,7 +42,9 @@ namespace SolverComponents
 
         public void Start()
         {
+           
             client = new NetworkClient(address, port);
+         
             if (Register())
             {
                 Console.WriteLine("Component registered successfully with id = {0}", id);
@@ -107,7 +109,6 @@ namespace SolverComponents
                 Console.WriteLine("TM: DivideProblems message sent successfully");
             }
 
-
         }
 
         /// <summary>
@@ -131,10 +132,6 @@ namespace SolverComponents
         {
 
         }
-
-
-
-
 
         private Type[] GetDelegateParameterTypes(Type d)
         {
@@ -201,8 +198,6 @@ namespace SolverComponents
 
                 var o = Activator.CreateInstance(t,constructor_param);
 
-
-
                 /*********event handler*/
  /*
                 var eventInfo = t.GetEvent("SolutionsMergingFinished");
@@ -243,7 +238,6 @@ namespace SolverComponents
                 methodInfo.Invoke(o, param);
                 var meth = t.GetMethod("get_Solution");
 
-
                 byte[] ans = (byte[])meth.Invoke(o, null);
 
                 TimeSpan ts = DateTime.Now - start_time;
@@ -253,10 +247,13 @@ namespace SolverComponents
                 solution_to_send.Add(final_solution);
 
                 solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
-               /* foreach (ComputationalThread th in threads)
+                foreach (ComputationalThread th in threads)
                 {
                     th.State = ComputationalThreadState.Idle;
-                }*/
+                    th.ProblemInstanceId = null;
+                    th.TaskId = null;
+                    th.ProblemType = null;  
+                }
             }
 
             else
@@ -293,8 +290,6 @@ namespace SolverComponents
                     case MessageTypes.Solutions:
                         Console.WriteLine("TM: try merge solutions is starting");
                         //wiadomosc od CC o obliczeniach, wysylana do TM po zakonczeniu kazdego zadania
-                      //  Thread.Sleep(2000);
-
                         tryMergeSolution((Solutions)parser.Message);
                         break;
 

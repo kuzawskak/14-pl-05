@@ -25,7 +25,7 @@ namespace SolverComponents
             protected byte computational_power;
 
             //client is for sending messages every <timeout> seconds to inform of being alive
-            protected NetworkClient client;
+            static protected NetworkClient client;
             protected ulong component_id;
             protected int port;
             protected string address;
@@ -56,24 +56,30 @@ namespace SolverComponents
             /// <returns></returns>
             public bool Register()
             {
-
-                Register register_message = new Register(type,computational_power,problem_names);
-                byte[] register_response = client.Work(register_message.GetXmlData());
-                XMLParser parser = new XMLParser(register_response);
-                if (parser.MessageType == MessageTypes.RegisterResponse)
+                try
                 {
-                    RegisterResponse register_response_msg = parser.Message as RegisterResponse;
-                    id = register_response_msg.Id;
-                    timeout = register_response_msg.Timeout;
-                    timeout_in_ms =(timeout.Hour *3600+timeout.Minute*60 + timeout.Second) * 1000 + timeout.Millisecond;
-                    Console.WriteLine("Received register values: id = {0}, timeout = {1} ms", id, timeout_in_ms);
+                    Register register_message = new Register(type, computational_power, problem_names);
+                    byte[] register_response = client.Work(register_message.GetXmlData());
+                    XMLParser parser = new XMLParser(register_response);
+                    if (parser.MessageType == MessageTypes.RegisterResponse)
+                    {
+                        RegisterResponse register_response_msg = parser.Message as RegisterResponse;
+                        id = register_response_msg.Id;
+                        timeout = register_response_msg.Timeout;
+                        timeout_in_ms = (timeout.Hour * 3600 + timeout.Minute * 60 + timeout.Second) * 1000 + timeout.Millisecond;
+                        Console.WriteLine("Received register values: id = {0}, timeout = {1} ms", id, timeout_in_ms);
+                    }
+                    else
+                    {
+                        Console.WriteLine("SolverNode: registration failed");
+                        return false;
+                    }
+                    return true;
                 }
-                else
-                {
-                    Console.WriteLine("SolverNode: registration failed");
+                catch {
+                    Console.WriteLine("Register failure");
                     return false;
                 }
-                return true;
             }
 
             /// <summary>

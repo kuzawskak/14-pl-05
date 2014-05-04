@@ -266,7 +266,7 @@ namespace DVRP
                 new BinaryFormatter().Serialize(ms, sc);
                 Solution = ms.ToArray();
                 State = TaskSolverState.Idle;
-                if (ProblemDividingFinished != null)
+                if (ProblemSolvingFinished != null)
                     ProblemSolvingFinished(new EventArgs(), this);
             }
             catch (TimeoutException e)
@@ -282,7 +282,7 @@ namespace DVRP
                 State = TaskSolverState.Timeout | TaskSolverState.Idle;
                 new BinaryFormatter().Serialize(ms, sc);
                 Solution = ms.ToArray();
-                if (ProblemDividingFinished != null)
+                if (ProblemSolvingFinished != null)
                     ProblemSolvingFinished(new EventArgs(), this);
             }
             catch (Exception e)
