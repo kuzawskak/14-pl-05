@@ -65,7 +65,7 @@ namespace SolverComponents
         /// </summary>
         public void SolveProblem(SolvePartialProblems msg)
         {
-            is_solving = true;
+            bool is_solving = true;
             //get the problem with your id
            // List <Solution> 
                 solution = new List<Solution>();

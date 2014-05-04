@@ -14,7 +14,7 @@ namespace DVRP
     public enum OrderEnum { GT, GE, LT, LE, EQ }
     public enum FileSection { IGNORE, DEMAND, TIME_WINDOW, DURATION, LOCATION_COORD, DEPOT_LOCATION, VISIT_LOCATION, EDGE_WEIGHT, OTHER, DEPOT_TIME_WINDOW, TIME_AVAIL }
 
-    class TestFileParser
+    public class TestFileParser
     {
 
         private FileSection CurrSect = FileSection.OTHER;
