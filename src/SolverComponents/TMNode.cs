@@ -8,6 +8,8 @@ using CommunicationNetwork;
 using CommunicationXML;
 using DVRP;
 using System.IO;
+using System.Reflection.Emit;
+using System.Windows.Forms;
 
 namespace SolverComponents
 {
@@ -129,6 +131,42 @@ namespace SolverComponents
         {
 
         }
+
+
+
+
+
+        private Type[] GetDelegateParameterTypes(Type d)
+        {
+            if (d.BaseType != typeof(MulticastDelegate))
+                throw new ApplicationException("Not a delegate.");
+
+            MethodInfo invoke = d.GetMethod("Invoke");
+            if (invoke == null)
+                throw new ApplicationException("Not a delegate.");
+
+            ParameterInfo[] parameters = invoke.GetParameters();
+            Type[] typeParameters = new Type[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                typeParameters[i] = parameters[i].ParameterType;
+            }
+            return typeParameters;
+        }
+
+        private Type GetDelegateReturnType(Type d)
+        {
+            if (d.BaseType != typeof(MulticastDelegate))
+                throw new ApplicationException("Not a delegate.");
+
+            MethodInfo invoke = d.GetMethod("Invoke");
+            if (invoke == null)
+                throw new ApplicationException("Not a delegate.");
+
+            return invoke.ReturnType;
+        }
+
+
         public void tryMergeSolution(Solutions msg)
         {
             Console.WriteLine("TM try to Merge solution of the problem with id = {0}  into final", msg.Id);
@@ -160,8 +198,46 @@ namespace SolverComponents
                
                 object[] constructor_param = new object[1];
                 constructor_param[0] =  msg.CommonData;
+
                 var o = Activator.CreateInstance(t,constructor_param);
-              
+
+
+
+                /*********event handler*/
+ /*
+                var eventInfo = t.GetEvent("SolutionsMergingFinished");
+                Type tDelegate = eventInfo.EventHandlerType;
+
+                MethodInfo addHandler = eventInfo.GetAddMethod();
+
+                Type returnType = GetDelegateReturnType(tDelegate);
+                Console.WriteLine(returnType.ToString());
+
+                DynamicMethod handler = new DynamicMethod("", null,
+                                      GetDelegateParameterTypes(tDelegate), t);
+
+                ILGenerator ilgen = handler.GetILGenerator();
+
+                Type[] showParameters = { typeof(String) };
+                MethodInfo simpleShow =
+                    typeof(MessageBox).GetMethod("Show", showParameters);
+
+                ilgen.Emit(OpCodes.Ldstr,
+                    "This event handler was constructed at run time.");
+                ilgen.Emit(OpCodes.Call, simpleShow);
+                ilgen.Emit(OpCodes.Pop);
+                ilgen.Emit(OpCodes.Ret);
+
+                // Complete the dynamic method by calling its CreateDelegate
+                // method. Use the "add" accessor to add the delegate to
+                // the invocation list for the event.
+                //
+                Delegate dEmitted = handler.CreateDelegate(tDelegate);
+                addHandler.Invoke(o, new Object[] { dEmitted });
+  * */
+                /*****************/
+
+
                 object[] param = new object[1];
                 param[0] = PartialSolutions.ToArray();               
                 methodInfo.Invoke(o, param);
@@ -177,6 +253,10 @@ namespace SolverComponents
                 solution_to_send.Add(final_solution);
 
                 solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
+               /* foreach (ComputationalThread th in threads)
+                {
+                    th.State = ComputationalThreadState.Idle;
+                }*/
             }
 
             else

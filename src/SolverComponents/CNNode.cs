@@ -8,6 +8,8 @@ using CommunicationNetwork;
 using CommunicationXML;
 using System.IO;
 using DVRP;
+using System.Reflection.Emit;
+using System.Windows.Forms;
 
 namespace SolverComponents
 {
@@ -19,56 +21,96 @@ namespace SolverComponents
             type = NodeType.ComputationalNode;
         }
 
+        static List<Solution> solution;
+
+        static int counter = 0;
+
+        public static void NodeThreadFunc(SolvePartialProblems msg,PartialProblem pp)
+        {
+            DateTime start_time = DateTime.Now;
+            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+            Type t = asm.GetType("DVRP.DVRP");
+
+            var methodInfo = t.GetMethod("Solve");
+            object[] constructor_params = new object[1];
+            constructor_params[0] = msg.CommonData;
+            var o = Activator.CreateInstance(t, constructor_params);
+
+            if (methodInfo != null)
+            {
+                object[] param = new object[2];
+
+                param[0] = pp.Data;
+                if (msg.SolvingTimeout == null)
+                    param[1] = null;
+                else param[1] = new TimeSpan((long)msg.SolvingTimeout * 10000000);
+
+                byte[] result = (byte[])
+                    methodInfo.Invoke(o, param);
+
+                TimeSpan ts = DateTime.Now - start_time;
+                Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, (ulong)ts.TotalSeconds, result);
+               
+                solution.Add(s);
+                ++counter;
+                   
+     
+            
+            }
+            else Console.WriteLine("Method equal to null");
+        }
        
         /// <summary>
         /// Rozwiazuje nadeslany problem czesciowy
         /// </summary>
         public void SolveProblem(SolvePartialProblems msg)
         {
-            DateTime start_time = DateTime.Now;
+            is_solving = true;
             //get the problem with your id
-            List <Solution> solution = new List<Solution>();
+           // List <Solution> 
+                solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
+            //i dla kazdego z listy tworz nowy watek
+          //  ThreadStart childref = new ThreadStart(NodeThreadFunc);
+            Thread[] threadss = new Thread[problems_list.Capacity];
 
-            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
-            Type t = asm.GetType("DVRP.DVRP");
-       
-            var methodInfo = t.GetMethod("Solve");
-            object[] constructor_params = new object[1];
-            constructor_params[0] = msg.CommonData;          
-            var o = Activator.CreateInstance(t,constructor_params);
+            int i = 0;
             if (problems_list != null)
             {
                 foreach (PartialProblem pp in problems_list)
                 {
-                    if (methodInfo != null)
-                    {
-                        object[] param = new object[2];
-
-                        param[0] = pp.Data;
-                        if( msg.SolvingTimeout==null)
-                            param[1] = null;
-                        else param[1] =  new TimeSpan((long)msg.SolvingTimeout * 10000000);
-
-                        byte[] result = (byte[])
-                            methodInfo.Invoke(o, param);
-
-                        TimeSpan ts = DateTime.Now - start_time;
-                        Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, (ulong)ts.TotalSeconds, result);
-
-                        solution.Add(s);
-                    }
-                    else Console.WriteLine("Method equal to null");
+                    threadss[i] = new Thread(() => NodeThreadFunc(msg,pp));
+                    threadss[i].Start();                  
+                    i++;
                                     
                 }
+
+                i = 0;
+                foreach (PartialProblem pp in problems_list)
+
+                {
+                    threadss[i].Join();
+                    i++;
+
+                }
+              
+                
             }
             else
             {
                 Console.WriteLine("PartialProblems list is null");
             }
             //after solving send Solutions Message
-            Solutions solutions = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution);
-            client.Work(solutions.GetXmlData());
+
+            {
+                Console.WriteLine("sending partial solutions");
+                Solutions solutions = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution);
+                foreach (ComputationalThread t in threads)
+                {
+                    t.State = ComputationalThreadState.Idle;
+                }
+                client.Work(solutions.GetXmlData());
+            }
             
         }
 
@@ -99,8 +141,11 @@ namespace SolverComponents
                 switch (parser.MessageType)
                 {
                     case MessageTypes.SolvePartialProblems:
-                        Console.WriteLine("CN: Received solve partial problems message"); 
-                        SolveProblem((SolvePartialProblems)parser.Message);
+                       // if (!is_solving)
+                        {
+                            Console.WriteLine("CN: Received solve partial problems message");
+                            SolveProblem((SolvePartialProblems)parser.Message);
+                        }
                         break;
                     default:
                         Console.WriteLine("Different message than SolvePartialProblems received");

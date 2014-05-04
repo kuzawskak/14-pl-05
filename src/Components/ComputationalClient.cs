@@ -11,6 +11,8 @@ using CommunicationXML;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using DVRP;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Components
 {
@@ -21,9 +23,9 @@ namespace Components
         private ulong problem_id;
         private ulong? solving_timeout;
         private string problem_type;
-       // byte[] problem_data;
         private string address;
         private int port;
+       
 
         /// <summary>
         /// Konstruktor uwzgledniajacy istnienie problemu (wtedy podajemy id)
@@ -43,8 +45,42 @@ namespace Components
             this.problem_type = problem_type;
             this.solving_timeout = solving_timeout;
             client = new NetworkClient(address, port_number);
+        
+
         }
-       
+
+
+        private Type[] GetDelegateParameterTypes(Type d)
+        {
+            if (d.BaseType != typeof(MulticastDelegate))
+                throw new ApplicationException("Not a delegate.");
+
+            MethodInfo invoke = d.GetMethod("Invoke");
+            if (invoke == null)
+                throw new ApplicationException("Not a delegate.");
+
+            ParameterInfo[] parameters = invoke.GetParameters();
+            Type[] typeParameters = new Type[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                typeParameters[i] = parameters[i].ParameterType;
+            }
+            return typeParameters;
+        }
+
+        private Type GetDelegateReturnType(Type d)
+        {
+            if (d.BaseType != typeof(MulticastDelegate))
+                throw new ApplicationException("Not a delegate.");
+
+            MethodInfo invoke = d.GetMethod("Invoke");
+            if (invoke == null)
+                throw new ApplicationException("Not a delegate.");
+
+            return invoke.ReturnType;
+        }
+
+
         /// <summary>
         /// Rejestruje problem umieszczony w pliku o podanej sciezce w Serwerze
         /// </summary>
@@ -58,11 +94,9 @@ namespace Components
             MemoryStream ms = new MemoryStream();
             System.IO.File.OpenRead(problem_data_filepath).CopyTo(ms);
             byte[] data = ms.ToArray();
-            //problem_data_xml.Load(problem_data_filepath);
-           // problem_data = Encoding.Default.GetBytes(problem_data_xml.OuterXml);
-            //problem_data = new byte[10];
-            //will be changed
+
             SolveRequest solve_request = new SolveRequest(problem_type, /*problem_*/data,solving_timeout);
+
             byte[] register_response = client.Work(solve_request.GetXmlData());
             if (register_response != null)
             {
