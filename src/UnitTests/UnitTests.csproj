@@ -58,6 +58,7 @@
     <Compile Include="CommunicationXMLTests\MessageObjectsTests.cs" />
     <Compile Include="CommunicationXMLTests\ObjectToXmlTests.cs" />
     <Compile Include="CommunicationXMLTests\XmlParserTests.cs" />
+    <Compile Include="DVRP\ParsingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -73,9 +74,43 @@
       <Project>{e5e545a8-5f2d-4f61-b785-1bebb8b9df76}</Project>
       <Name>Components</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DVRP\DVRP.csproj">
+      <Project>{5b012f2b-f0b5-43ac-8661-53af207ee714}</Project>
+      <Name>DVRP</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Components\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem1.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem2.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem3.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem4.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem5.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DVRP\Problems\problem6.vrp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
