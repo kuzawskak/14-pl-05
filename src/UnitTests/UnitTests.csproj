@@ -36,6 +36,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="UCCTaskSolver, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\UCCTaskSolver.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -59,12 +63,17 @@
     <Compile Include="CommunicationXMLTests\ObjectToXmlTests.cs" />
     <Compile Include="CommunicationXMLTests\XmlParserTests.cs" />
     <Compile Include="DVRP\ParsingTests.cs" />
+    <Compile Include="DVRP\DVRPTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CommunicationNetwork\CommunicationNetwork.csproj">
       <Project>{a04ccf40-b77a-4bf8-b1af-01dd7903cdec}</Project>
       <Name>CommunicationNetwork</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommunicationServer\CommunicationServer.csproj">
+      <Project>{ea16f14b-62c9-44a1-8711-b60b66555484}</Project>
+      <Name>CommunicationServer</Name>
     </ProjectReference>
     <ProjectReference Include="..\CommunicationXML\CommunicationXML.csproj">
       <Project>{5f1f05bb-243f-42be-889d-af6c964771f6}</Project>
@@ -74,9 +83,29 @@
       <Project>{e5e545a8-5f2d-4f61-b785-1bebb8b9df76}</Project>
       <Name>Components</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ComputationalClient\ComputationalClient.csproj">
+      <Project>{f012978c-a8d6-4cc5-b135-496ee750b63c}</Project>
+      <Name>ComputationalClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ComputationalNode\ComputationalNode.csproj">
+      <Project>{dc35d87f-bb24-4217-94c9-829b6fdb6c4f}</Project>
+      <Name>ComputationalNode</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DVRP\DVRP.csproj">
       <Project>{5b012f2b-f0b5-43ac-8661-53af207ee714}</Project>
       <Name>DVRP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RemoteTester\RemoteTester.csproj">
+      <Project>{973fa29d-b25d-4bb1-86ee-85b816326637}</Project>
+      <Name>RemoteTester</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SolverComponents\SolverComponents.csproj">
+      <Project>{1389dbc9-8f6e-421e-93dc-4d884a63c22d}</Project>
+      <Name>SolverComponents</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TaskManager\TaskManager.csproj">
+      <Project>{4314052d-1f11-486e-940f-c8ddb653079b}</Project>
+      <Name>TaskManager</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
