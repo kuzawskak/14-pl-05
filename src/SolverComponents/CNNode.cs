@@ -17,7 +17,7 @@ namespace SolverComponents
     public class CNNode : SolverNode
     {
 
-        private  Type[] GetDelegateParameterTypes(Type d)
+        private Type[] GetDelegateParameterTypes(Type d)
         {
             if (d.BaseType != typeof(MulticastDelegate))
                 throw new ApplicationException("Not a delegate.");
@@ -35,7 +35,7 @@ namespace SolverComponents
             return typeParameters;
         }
 
-        private  Type GetDelegateReturnType(Type d)
+        private Type GetDelegateReturnType(Type d)
         {
             if (d.BaseType != typeof(MulticastDelegate))
                 throw new ApplicationException("Not a delegate.");
@@ -48,21 +48,19 @@ namespace SolverComponents
         }
 
 
-        
-        public CNNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
+
+        public CNNode(string address, int port, List<string> problem_names, byte computational_power)
+            : base(address, port, problem_names, computational_power)
         {
             type = NodeType.ComputationalNode;
         }
 
-        static List<Solution> solution;
+        List<Solution> solution;
 
 
-
-
-
-        public void NodeThreadFunc(/*object o, MethodInfo methodInfo,*/ SolvePartialProblems msg,PartialProblem pp,ComputationalThread ct)
+        public void NodeThreadFunc(/*object o, MethodInfo methodInfo,*/ SolvePartialProblems msg, PartialProblem pp, ComputationalThread ct)
         {
-           
+
             DateTime start_time = DateTime.Now;
 
             var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
@@ -72,7 +70,7 @@ namespace SolverComponents
             object[] constructor_params = new object[1];
             constructor_params[0] = msg.CommonData;
             var o = Activator.CreateInstance(t, constructor_params);
-            /*********event handler*/       
+            /*********event handler*/
 
             var eventInfo = t.GetEvent("SolutionsMergingFinished");
             Type tDelegate = eventInfo.EventHandlerType;
@@ -89,10 +87,11 @@ namespace SolverComponents
 
             Type[] showParameters = { typeof(String) };
             MethodInfo simpleShow = typeof(CNNode).GetMethod("SetComputationalThreadIdle");
+            Console.WriteLine(simpleShow.ToString());
 
-            ilgen.Emit(OpCodes.Ldstr,"This event handler was constructed at run time.");
+            ilgen.Emit(OpCodes.Ldstr, "string");//ct.ProblemInstanceId.Value);//Ldstr,"This event handler was constructed at run time.");
             ilgen.Emit(OpCodes.Call, simpleShow);
-            ilgen.Emit(OpCodes.Pop);
+            //   ilgen.Emit(OpCodes.Pop);
             ilgen.Emit(OpCodes.Ret);
 
             // Complete the dynamic method by calling its CreateDelegate
@@ -118,14 +117,14 @@ namespace SolverComponents
 
                 TimeSpan ts = DateTime.Now - start_time;
                 Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, (ulong)ts.TotalSeconds, result);
-               
+
                 solution.Add(s);
                 Console.WriteLine("sending partial solutions");
                 Solutions solutions = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution);
-                
+
                 client.Work(solutions.GetXmlData());
-                
-            
+
+
             }
             else Console.WriteLine("Method equal to null");
         }
@@ -133,9 +132,9 @@ namespace SolverComponents
         public void SetComputationalThreadIdle(String text)//int problemid, int taskid)
         {
             Console.WriteLine("Setting Computationalthread to idle");
-          //  ComputationalThread ct = threads.Find(x =>( (int)x.ProblemInstanceId == problemid && (int)x.TaskId == taskid));
-           // threads.Remove(ct);
-           // threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));            
+            //  ComputationalThread ct = threads.Find(x =>( (int)x.ProblemInstanceId == problemid && (int)x.TaskId == taskid));
+            // threads.Remove(ct);
+            // threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));            
         }
 
 
@@ -156,23 +155,23 @@ namespace SolverComponents
             {
                 foreach (PartialProblem pp in problems_list)
                 {
-                    ComputationalThread ct = threads.Find(x => x.State == ComputationalThreadState.Idle);                                  
+                    ComputationalThread ct = threads.Find(x => x.State == ComputationalThreadState.Idle);
                     threads.Remove(ct);
-                    ComputationalThread new_thread = new ComputationalThread(ComputationalThreadState.Busy,0,msg.Id,pp.TaskId,msg.ProblemType);
+                    ComputationalThread new_thread = new ComputationalThread(ComputationalThreadState.Busy, 0, msg.Id, pp.TaskId, msg.ProblemType);
                     threads.Add(new_thread);
-                   
-                    threadss[i] = new Thread(() => NodeThreadFunc(/*o,methodInfo*,*/msg,pp,new_thread));
-                    threadss[i].Start();                  
+
+                    threadss[i] = new Thread(() => NodeThreadFunc(/*o,methodInfo*,*/msg, pp, new_thread));
+                    threadss[i].Start();
                     i++;
-                                    
+
                 }
-             
+
             }
             else
             {
                 Console.WriteLine("PartialProblems list is null");
             }
-            
+
         }
 
 
@@ -202,9 +201,9 @@ namespace SolverComponents
                 switch (parser.MessageType)
                 {
                     case MessageTypes.SolvePartialProblems:
-                       // Thread problem_solve_thread = new 
+                        // Thread problem_solve_thread = new 
                         Console.WriteLine("CN: Received solve partial problems message");
-                        SolveProblem((SolvePartialProblems)parser.Message);                        
+                        SolveProblem((SolvePartialProblems)parser.Message);
                         break;
                     default:
                         Console.WriteLine("Different message than SolvePartialProblems received");
