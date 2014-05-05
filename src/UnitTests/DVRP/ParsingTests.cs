@@ -3,8 +3,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using DVRP;
 
-namespace UnitTests.DVRP
+namespace UnitTests
 {
+    /// <summary>
+    /// Klasa testująca parsowanie problemów
+    /// </summary>
     [TestClass]
     public class ParsingTests
     {

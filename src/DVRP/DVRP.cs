@@ -54,7 +54,7 @@ namespace DVRP
     /// <summary>
     /// DVRP.
     /// </summary>
-    class DVRP : TaskSolver
+    public class DVRP : TaskSolver
     {
         /// <summary>
         /// Ograniczenia dla pojazdów. Definiuje ograniczenia dla wszystkich pojazdów.
