@@ -822,9 +822,12 @@ namespace DVRP
                 State = TaskSolverState.Idle;
                 if (SolutionsMergingFinished != null)
                     SolutionsMergingFinished(new EventArgs(), this);
+
+                //Task.Factory.StartNew(() => System.Windows.Forms.MessageBox.Show("OK"));
             }
             catch (Exception e)
             {
+                Task.Factory.StartNew(() => System.Windows.Forms.MessageBox.Show(e.ToString()));
                 State = TaskSolverState.Error | TaskSolverState.Idle;
                 if (ErrorOccured != null)
                     ErrorOccured(this, new UnhandledExceptionEventArgs(e, true));

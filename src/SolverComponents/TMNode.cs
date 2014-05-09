@@ -67,7 +67,7 @@ namespace SolverComponents
             ulong? timeout_in_miliseconds = timeout != null ? (ulong?)timeout.Millisecond : null;
             ulong computational_nodes = msg.ComputationalNodes;
 
-            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));
             Type t = asm.GetType("DVRP.DVRP");
 
             var methodInfo = t.GetMethod("DivideProblem");
@@ -108,6 +108,8 @@ namespace SolverComponents
             {
                 Console.WriteLine("TM: DivideProblems message sent successfully");
             }
+
+
 
         }
 
@@ -188,7 +190,7 @@ namespace SolverComponents
                 Console.WriteLine("TM: Ready to merge solution");
                 //one common solution
 
-                var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+                var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));//Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
                 Type t = asm.GetType("DVRP.DVRP");
 
                 var methodInfo = t.GetMethod("MergeSolution");
@@ -269,6 +271,7 @@ namespace SolverComponents
             }
 
         }
+
         public void SendStatusMessage()
         {
             Status status_msg = new Status(id, threads);

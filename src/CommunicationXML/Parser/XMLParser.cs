@@ -22,6 +22,7 @@ namespace CommunicationXML
             //xmlMessage = StringToBytesConverter.GetString(data);
             xmlMessage = System.Text.Encoding.UTF8.GetString(data);
             System.Console.WriteLine(xmlMessage);
+            System.Console.WriteLine();
             object result;
 
             if(null != (result = TryDeserilize(typeof(Register))))

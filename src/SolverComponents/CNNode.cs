@@ -63,7 +63,7 @@ namespace SolverComponents
 
             DateTime start_time = DateTime.Now;
 
-            var asm = Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));
             Type t = asm.GetType("DVRP.DVRP");
 
             var methodInfo = t.GetMethod("Solve");
@@ -124,17 +124,17 @@ namespace SolverComponents
 
                 client.Work(solutions.GetXmlData());
 
-
+                SetComputationalThreadIdle(msg.Id, pp.TaskId);
             }
             else Console.WriteLine("Method equal to null");
         }
 
-        public void SetComputationalThreadIdle(String text)//int problemid, int taskid)
+        public void SetComputationalThreadIdle(ulong problemid, ulong taskid)
         {
             Console.WriteLine("Setting Computationalthread to idle");
-            //  ComputationalThread ct = threads.Find(x =>( (int)x.ProblemInstanceId == problemid && (int)x.TaskId == taskid));
-            // threads.Remove(ct);
-            // threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));            
+            ComputationalThread ct = threads.Find(x => (x.ProblemInstanceId == problemid && x.TaskId == taskid));
+            threads.Remove(ct);
+            threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));
         }
 
 
