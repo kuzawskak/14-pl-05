@@ -15,7 +15,7 @@ namespace DVRP
             DateTime t = DateTime.Now;
 
             MemoryStream ms = new MemoryStream();
-            System.IO.File.OpenRead("dvrp_problems\\okul12D.vrp").CopyTo(ms);
+            System.IO.File.OpenRead("dvrp_problems\\smallokul12D.txt").CopyTo(ms);
             byte[] data = ms.ToArray();
 
             DVRP dvrpDivide = new DVRP(data);
@@ -29,7 +29,7 @@ namespace DVRP
             foreach (var x in dvrpDivide.PartialProblems)
             {
                 DVRP dvrpSolve = new DVRP(data);
-                dvrpSolve.Solve(x, new TimeSpan(0, 0, 1));
+                dvrpSolve.Solve(x, new TimeSpan(3, 0, 0));
                 ans.Add(dvrpSolve.Solution);
             }
 

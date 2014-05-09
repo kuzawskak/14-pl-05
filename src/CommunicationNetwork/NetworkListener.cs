@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
+using CommunicationXML;
 
 namespace CommunicationNetwork
 {
@@ -106,14 +107,29 @@ namespace CommunicationNetwork
             List<byte> lb = new List<byte>();
             //string packet = "";
             int read_bytes;
-            do {
+            bool isFullMessage = false;
+            DateTime lstStarted = DateTime.Now;
+            TimeSpan lstTimeout = new TimeSpan(0, 0, 10);
+
+            do
+            {
                 read_bytes = ns.Read(bytes, 0, pack_len);
                 Console.WriteLine("received: " + read_bytes);
                 // add to list of partial read packet
                 lb.AddRange(bytes.Take(read_bytes).ToArray());
+
+                try
+                {
+                    new XMLParser(lb.ToArray());
+                    isFullMessage = true;
+                }
+                catch (Exception e)
+                {
+                    isFullMessage = false;
+                }
                 //lb.Add(((byte[])bytes.Clone()));
             }
-            while (ns.DataAvailable);
+            while (!isFullMessage && (lstStarted + lstTimeout > DateTime.Now)); //(ns.DataAvailable);
 
             // put all data in one byte array
             //uint ps = 0;
