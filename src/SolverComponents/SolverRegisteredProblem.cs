@@ -10,19 +10,22 @@ using CommunicationXML;
 namespace SolverComponents
 {
 
-
-
     class SolverRegisteredProblem
     {
 
         private ulong problem_id;
         private List<PartialProblem> ongoing_problems = new List<PartialProblem>();
-
+        public ulong computation_time { get; set; }
 
         public ulong ProblemId
         {
             get { return problem_id; }
             set { problem_id = value; }
+        }
+
+        public void SetComputationsTime(ulong computation_time)
+        {
+            this.computation_time = computation_time;
         }
 
         public SolverRegisteredProblem(ulong problem_id, List<PartialProblem> ongoing_problems)

@@ -20,16 +20,18 @@ namespace SolverComponents
     public class TMNode : SolverNode
     {
 
-        DateTime start_time;
+        static DateTime start_time;
         private static List<SolverRegisteredProblem> ongoing_problems = new List<SolverRegisteredProblem>();
 
         private List<byte[]> PartialSolutions = new List<byte[]>();
-        public TMNode(string address, int port, List<string> problem_names, byte computational_power): base (address,port,problem_names,computational_power)
+      
+        public TMNode(string address, int port, List<string> problem_names, byte computational_power)
+            : base(address, port, problem_names, computational_power)
         {
             type = NodeType.TaskManager;
         }
 
-        
+
         //podziel problem
         public void DivideProblem(DivideProblem msg)
         {
@@ -42,9 +44,9 @@ namespace SolverComponents
 
         public void Start()
         {
-           
+
             client = new NetworkClient(address, port);
-         
+
             if (Register())
             {
                 Console.WriteLine("Component registered successfully with id = {0}", id);
@@ -57,7 +59,7 @@ namespace SolverComponents
         /// dlatego korzystamy w sumie tylko z liczby CN
         /// </summary>
         /// <param name="msg">DivideProblem message object</param>
-        public void DivideProblemSimulation(DivideProblem msg)
+        public void DivideProblemSimulation(DivideProblem msg, ComputationalThread thread)
         {
             if (msg == null)
             {
@@ -72,22 +74,22 @@ namespace SolverComponents
 
             var methodInfo = t.GetMethod("DivideProblem");
             object[] constructor_params = new object[1];
-            constructor_params[0] = msg.Data;           
-            var o = Activator.CreateInstance(t,constructor_params);
+            constructor_params[0] = msg.Data;
+            var o = Activator.CreateInstance(t, constructor_params);
 
             object[] param = new object[1];
             param[0] = (int)msg.ComputationalNodes;
             byte[][] result = (byte[][])methodInfo.Invoke(o, param);
 
-            start_time = DateTime.Now;
-        
+           // start_time = DateTime.Now;
+
             List<PartialProblem> divided_problems = new List<PartialProblem>();
             //tworzymy tyle podproblemow ile dostepnych nodów 
-            
+
             for (int i = 0; i < (int)computational_nodes; i++)
             {
                 Console.WriteLine("adding partial problem to divided problems");
-                PartialProblem pp = new PartialProblem((ulong)i, result[i]);           
+                PartialProblem pp = new PartialProblem((ulong)i, result[i]);
                 divided_problems.Add(pp);
             }
 
@@ -98,9 +100,9 @@ namespace SolverComponents
                 return;
             }
 
-            SolverRegisteredProblem srp = new SolverRegisteredProblem(msg.Id,divided_problems);
+            SolverRegisteredProblem srp = new SolverRegisteredProblem(msg.Id, divided_problems);
             ongoing_problems.Add(srp);
-            SolvePartialProblems solve_partial_problems_msg = new SolvePartialProblems(msg.ProblemType,msg.Id, msg.Data, timeout_in_miliseconds, divided_problems);
+            SolvePartialProblems solve_partial_problems_msg = new SolvePartialProblems(msg.ProblemType, msg.Id, msg.Data, timeout_in_miliseconds, divided_problems);
 
             byte[] response = client.Work(solve_partial_problems_msg.GetXmlData());
             //in this case it's expected value
@@ -108,7 +110,8 @@ namespace SolverComponents
             {
                 Console.WriteLine("TM: DivideProblems message sent successfully");
             }
-
+            SetComputationalThreadIdle((ulong)thread.ProblemInstanceId,(ulong) thread.TaskId);
+          
 
 
         }
@@ -126,14 +129,6 @@ namespace SolverComponents
             }
         }
 
-        /// <summary>
-        /// laczy rozwiazania czesciowe (konieczna implementacja interfejsu z TaskSolvera)
-        /// i wysyla do serwera
-        /// </summary>
-        public void MergeSolution()
-        {
-
-        }
 
         private Type[] GetDelegateParameterTypes(Type d)
         {
@@ -166,111 +161,145 @@ namespace SolverComponents
         }
 
 
-        public void tryMergeSolution(Solutions msg)
+      
+        public void DivideThreadFunc(DivideProblem msg,ComputationalThread thread)
         {
-            Console.WriteLine("TM try to Merge solution of the problem with id = {0}  into final", msg.Id);
-            //check if solved problems number is equal to 
-
-            SolverRegisteredProblem p = ongoing_problems.Find(x => msg.Id ==x.ProblemId);
-            if (p != null)
+            if (msg == null)
             {
-                foreach (Solution s in msg.SolutionsList)
-                {
-                    p.MarkAsSolved((ulong)s.TaskId);
-                    PartialSolutions.Add(s.Data);
-                }
+                Console.WriteLine("TM: DivideProblemSimulation failure - msg is null");
+                return;
             }
-            else Console.WriteLine("Not foung Solver registered problem");
+            ulong? timeout_in_miliseconds = timeout != null ? (ulong?)timeout.Millisecond : null;
+            ulong computational_nodes = msg.ComputationalNodes;
 
-            Solutions solutions_msg = null;
-            if (p!=null && p.IsProblemSolved())
+            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));
+            Type t = asm.GetType("DVRP.DVRP");
+
+            var methodInfo = t.GetMethod("DivideProblem");
+            object[] constructor_params = new object[1];
+            constructor_params[0] = msg.Data;
+            var o = Activator.CreateInstance(t, constructor_params);
+            /*********event handler*/
+
+            var eventInfo = t.GetEvent("ProblemDividingFinished");
+            Type tDelegate = eventInfo.EventHandlerType;
+
+            MethodInfo addHandler = eventInfo.GetAddMethod();
+
+            Type returnType = GetDelegateReturnType(tDelegate);
+            Console.WriteLine(returnType.ToString());
+
+            DynamicMethod handler = new DynamicMethod("", null,
+                                  GetDelegateParameterTypes(tDelegate), t);
+
+            ILGenerator ilgen = handler.GetILGenerator();
+
+            Type[] showParameters = { typeof(String) };
+            MethodInfo simpleShow = typeof(CNNode).GetMethod("SetComputationalThreadIdle");
+            Console.WriteLine(simpleShow.ToString());
+
+            ilgen.Emit(OpCodes.Ldstr, "string");//ct.ProblemInstanceId.Value);//Ldstr,"This event handler was constructed at run time.");
+            ilgen.Emit(OpCodes.Call, simpleShow);
+            //   ilgen.Emit(OpCodes.Pop);
+            ilgen.Emit(OpCodes.Ret);
+
+            // Complete the dynamic method by calling its CreateDelegate
+            // method. Use the "add" accessor to add the delegate to
+            // the invocation list for the event.
+            //
+            Delegate dEmitted = handler.CreateDelegate(tDelegate);
+            addHandler.Invoke(o, new Object[] { dEmitted });
+
+
+
+
+
+
+
+            object[] param = new object[1];
+            param[0] = (int)msg.ComputationalNodes;
+            byte[][] result = (byte[][])methodInfo.Invoke(o, param);
+
+            start_time = DateTime.Now;
+
+            List<PartialProblem> divided_problems = new List<PartialProblem>();
+            //tworzymy tyle podproblemow ile dostepnych nodów 
+
+            for (int i = 0; i < (int)computational_nodes; i++)
             {
-
-                ongoing_problems.Remove(p);
-                Console.WriteLine("TM: Ready to merge solution");
-                //one common solution
-
-                var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));//Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
-                Type t = asm.GetType("DVRP.DVRP");
-
-                var methodInfo = t.GetMethod("MergeSolution");
-               
-                object[] constructor_param = new object[1];
-                constructor_param[0] =  msg.CommonData;
-
-                var o = Activator.CreateInstance(t,constructor_param);
-
-                /*********event handler*/
- /*
-                var eventInfo = t.GetEvent("SolutionsMergingFinished");
-                Type tDelegate = eventInfo.EventHandlerType;
-
-                MethodInfo addHandler = eventInfo.GetAddMethod();
-
-                Type returnType = GetDelegateReturnType(tDelegate);
-                Console.WriteLine(returnType.ToString());
-
-                DynamicMethod handler = new DynamicMethod("", null,
-                                      GetDelegateParameterTypes(tDelegate), t);
-
-                ILGenerator ilgen = handler.GetILGenerator();
-
-                Type[] showParameters = { typeof(String) };
-                MethodInfo simpleShow =
-                    typeof(MessageBox).GetMethod("Show", showParameters);
-
-                ilgen.Emit(OpCodes.Ldstr,
-                    "This event handler was constructed at run time.");
-                ilgen.Emit(OpCodes.Call, simpleShow);
-                ilgen.Emit(OpCodes.Pop);
-                ilgen.Emit(OpCodes.Ret);
-
-                // Complete the dynamic method by calling its CreateDelegate
-                // method. Use the "add" accessor to add the delegate to
-                // the invocation list for the event.
-                //
-                Delegate dEmitted = handler.CreateDelegate(tDelegate);
-                addHandler.Invoke(o, new Object[] { dEmitted });
-  * */
-                /*****************/
-
-
-                object[] param = new object[1];
-                param[0] = PartialSolutions.ToArray();               
-                methodInfo.Invoke(o, param);
-                var meth = t.GetMethod("get_Solution");
-
-                byte[] ans = (byte[])meth.Invoke(o, null);
-
-                TimeSpan ts = DateTime.Now - start_time;
-
-                Solution final_solution = new Solution(msg.Id, false, SolutionType.Final,(ulong)ts.TotalSeconds, ans);
-                List<Solution> solution_to_send = new List<Solution>();
-                solution_to_send.Add(final_solution);
-
-                solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
-                foreach (ComputationalThread th in threads)
-                {
-                    th.State = ComputationalThreadState.Idle;
-                    th.ProblemInstanceId = null;
-                    th.TaskId = null;
-                    th.ProblemType = null;  
-                }
+                Console.WriteLine("adding partial problem to divided problems");
+                PartialProblem pp = new PartialProblem((ulong)i, result[i]);
+                divided_problems.Add(pp);
             }
 
-            else
+
+            if (divided_problems.Count == 0)
             {
-                Console.WriteLine("TM: unready to merge");
-                solutions_msg = msg;
+                Console.WriteLine("TM: Cannot send msg with no partial problems set");
+                return;
             }
 
-            byte[] response = client.Work(solutions_msg.GetXmlData());
+            SolverRegisteredProblem srp = new SolverRegisteredProblem(msg.Id, divided_problems);
+            ongoing_problems.Add(srp);
+            SolvePartialProblems solve_partial_problems_msg = new SolvePartialProblems(msg.ProblemType, msg.Id, msg.Data, timeout_in_miliseconds, divided_problems);
+
+            byte[] response = client.Work(solve_partial_problems_msg.GetXmlData());
+            //in this case it's expected value
             if (response == null)
             {
-                Console.WriteLine("final solutions sent successfully");
+                Console.WriteLine("TM: DivideProblems message sent successfully");
             }
+            SetComputationalThreadIdle((ulong)thread.ProblemInstanceId, (ulong)thread.TaskId);
 
         }
+
+
+        public void SetComputationalThreadIdle(ulong problemid, ulong taskid)
+        {
+            Console.WriteLine("Setting Computationalthread to idle");
+            ComputationalThread ct = threads.Find(x => (x.ProblemInstanceId == problemid && x.TaskId == taskid));
+            threads.Remove(ct);
+            threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));
+
+        }
+
+        public void MergeThreadFunc(Solutions msg,ComputationalThread thread)
+        {
+
+            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));//Assembly.LoadFile(Path.GetFullPath("DVRP.dll"));
+            Type t = asm.GetType("DVRP.DVRP");
+
+            var methodInfo = t.GetMethod("MergeSolution");
+
+            object[] constructor_param = new object[1];
+            constructor_param[0] = msg.CommonData;
+
+            var o = Activator.CreateInstance(t, constructor_param);           
+
+            Solutions solutions_msg;
+            object[] param = new object[1];
+            param[0] = PartialSolutions.ToArray();
+           methodInfo.Invoke(o, param);
+            var meth = t.GetMethod("get_Solution");
+
+           byte[] ans = (byte[])meth.Invoke(o, null);
+
+           // TimeSpan ts = DateTime.Now - start_time;
+            
+            Solution final_solution = new Solution(msg.Id, false, SolutionType.Final,thread.HowLong, ans);
+            List<Solution> solution_to_send = new List<Solution>();
+            solution_to_send.Add(final_solution);
+
+            solutions_msg = new Solutions(msg.ProblemType, msg.Id, msg.CommonData, solution_to_send);
+
+
+            client.Work(solutions_msg.GetXmlData());
+            SetComputationalThreadIdle((ulong)thread.ProblemInstanceId, (ulong)thread.TaskId);
+
+        }
+
+
+
 
         public void SendStatusMessage()
         {
@@ -288,16 +317,68 @@ namespace SolverComponents
                 {
                     case MessageTypes.DivideProblem:
                         Console.WriteLine("TM divides and send problem to CS");
-                        DivideProblemSimulation((DivideProblem)parser.Message);
+                        DivideProblem msg = (DivideProblem)parser.Message;
+                        ComputationalThread ct = threads.Find(x => x.State == ComputationalThreadState.Idle);
+                        threads.Remove(ct);
+                        ComputationalThread new_thread = new ComputationalThread(ComputationalThreadState.Busy, 0, msg.Id,1, msg.ProblemType);
+                        threads.Add(new_thread);
+                        Thread t = new Thread(() => DivideThreadFunc(msg,new_thread));
+                        t.Start();
                         break;
                     case MessageTypes.Solutions:
                         Console.WriteLine("TM: try merge solutions is starting");
-                        //wiadomosc od CC o obliczeniach, wysylana do TM po zakonczeniu kazdego zadania
-                        tryMergeSolution((Solutions)parser.Message);
+                        Solutions sol_msg = (Solutions)parser.Message;
+
+                        Console.WriteLine("TM try to Merge solution of the problem with id = {0}  into final", sol_msg.Id);
+                        //check if solved problems number is equal to 
+
+                        SolverRegisteredProblem p = ongoing_problems.Find(x => sol_msg.Id == x.ProblemId);
+                        if (p != null)
+                        {
+                            foreach (Solution s in sol_msg.SolutionsList)
+                            {
+                                if (s.Data != null)
+                                {
+                                    p.MarkAsSolved((ulong)s.TaskId);
+                                    PartialSolutions.Add(s.Data);
+                                    p.SetComputationsTime(s.ComputationsTime);
+                                    
+                                }
+                            }
+                        }
+                        else Console.WriteLine("Not foung Solver registered problem");
+
+
+                        if (p != null && p.IsProblemSolved())
+                        {
+
+                            ongoing_problems.Remove(p);
+                            Console.WriteLine("TM: Ready to merge solution");
+                            //one common solution
+
+                            ComputationalThread sol_ct = threads.Find(x => x.State == ComputationalThreadState.Idle);
+                            threads.Remove(sol_ct);
+                            ComputationalThread new_sol_thread = new ComputationalThread(ComputationalThreadState.Busy, p.computation_time, sol_msg.Id,1, sol_msg.ProblemType);
+                            threads.Add(new_sol_thread);
+                            Thread sol_t = new Thread(() => MergeThreadFunc(sol_msg,new_sol_thread));
+                            sol_t.Start();
+                        }
+
+                        else
+                        {
+                            client.Work(sol_msg.GetXmlData());
+                        }
+
                         break;
+                    default:
+                        Console.WriteLine("received other message: "+ response.GetType().ToString());
+                        client.Work(status_msg.GetXmlData());
+                        break;
+
 
                 }
             }
         }
     }
 }
+

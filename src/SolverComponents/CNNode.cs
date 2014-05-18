@@ -53,10 +53,12 @@ namespace SolverComponents
             : base(address, port, problem_names, computational_power)
         {
             type = NodeType.ComputationalNode;
+            threadss = new Thread[computational_power];
+
         }
 
         List<Solution> solution;
-
+        Thread[] threadss;
 
         public void NodeThreadFunc(/*object o, MethodInfo methodInfo,*/ SolvePartialProblems msg, PartialProblem pp, ComputationalThread ct)
         {
@@ -135,6 +137,7 @@ namespace SolverComponents
             ComputationalThread ct = threads.Find(x => (x.ProblemInstanceId == problemid && x.TaskId == taskid));
             threads.Remove(ct);
             threads.Add(new ComputationalThread(ComputationalThreadState.Idle, 1, null, null, problem_names[0]));
+
         }
 
 
@@ -148,7 +151,7 @@ namespace SolverComponents
             solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
             //i dla kazdego z listy tworz nowy watek
-            Thread[] threadss = new Thread[problems_list.Capacity];
+           // Thread[] threadss = new Thread[problems_list.Capacity];
 
             int i = 0;
             if (problems_list != null)
@@ -181,6 +184,7 @@ namespace SolverComponents
             if (Register())
             {
                 Console.WriteLine("Component registered successfully with id = {0}", id);
+                
                 Work();
             }
         }
@@ -224,6 +228,15 @@ namespace SolverComponents
                 Thread.Sleep(timeout_in_ms);
                 SendStatusMessage();
 
+            }
+        }
+
+
+        public void StopWork()
+        {
+            for (int i = 0; i < threadss.Length; i++)
+            {
+                threadss[i].Join();
             }
         }
     }

@@ -82,13 +82,7 @@ namespace SolverComponents
                 }
             }
 
-            /// <summary>
-            /// Wysylanie cyklicznej wiadomosci  o stanie przetwarzania danych w komponencie
-            /// </summary>
-            public void SendStatusMessage()
-            {            
-                          
-            }       
+      
 
         }
 
