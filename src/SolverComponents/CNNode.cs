@@ -65,8 +65,9 @@ namespace SolverComponents
 
             DateTime start_time = DateTime.Now;
 
-            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath("DVRP.dll")));
-            Type t = asm.GetType("DVRP.DVRP");
+            var asm = Assembly.Load(AssemblyName.GetAssemblyName(Path.GetFullPath(msg.ProblemType + ".dll")));
+            //Type t = asm.GetType("DVRP.DVRP");
+            Type t = asm.GetTypes().Where(x => x.IsSubclassOf(typeof(UCCTaskSolver.TaskSolver))).FirstOrDefault();
 
             var methodInfo = t.GetMethod("Solve");
             object[] constructor_params = new object[1];
@@ -115,7 +116,17 @@ namespace SolverComponents
                     param[1] = null;
                 else param[1] = new TimeSpan((long)msg.SolvingTimeout * 10000000);
 
-                byte[] result = (byte[])methodInfo.Invoke(o, param);
+                byte[] result = null;
+
+                try
+                {
+                    result = (byte[])methodInfo.Invoke(o, param);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show("Moduł '" + msg.ProblemType + ".dll' zakończył działanie z błędem:\n\n" + e.InnerException.Message, "Błąd modułu", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                }
 
                 TimeSpan ts = DateTime.Now - start_time;
                 Solution s = new Solution(pp.TaskId, false, SolutionType.Partial, (ulong)ts.TotalSeconds, result);
@@ -151,7 +162,7 @@ namespace SolverComponents
             solution = new List<Solution>();
             List<PartialProblem> problems_list = msg.PartialProblems;
             //i dla kazdego z listy tworz nowy watek
-           // Thread[] threadss = new Thread[problems_list.Capacity];
+            // Thread[] threadss = new Thread[problems_list.Capacity];
 
             int i = 0;
             if (problems_list != null)
@@ -184,7 +195,7 @@ namespace SolverComponents
             if (Register())
             {
                 Console.WriteLine("Component registered successfully with id = {0}", id);
-                
+
                 Work();
             }
         }

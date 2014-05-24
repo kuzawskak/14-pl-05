@@ -457,7 +457,7 @@ namespace Components
                     taskManagers.RemoveAll(x => x.LastTime.Ticks + timeEps.Ticks < DateTime.Now.Ticks - timeout.Ticks);
                 }
 
-                debug.Print("Background cleanup. Nodes count: " + (computationalNodes.Count + taskManagers.Count));
+                debug.Print("Background cleanup. Nodes count: " + (computationalNodes.Count + taskManagers.Count) + ". Problems count: " + problems.Count);
             }
         }
 
