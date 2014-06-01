@@ -201,11 +201,34 @@ namespace UnitTests.CommunicationXMLTests
             //Act
             byte[] data = s.GetXmlData();
 
+
+            //Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
+            Console.WriteLine(System.Text.Encoding.UTF8.GetString(data));
             //Assert
             Assert.IsNotNull(data);
 
-            Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
+            
         }
+
+        [TestMethod]
+        public void SolutionsEmptyListTest()
+        {
+            //Arrange
+            Solutions s = new Solutions("name", 123, new byte[]{}, new Solution[] {});
+
+            //Act
+            byte[] data = s.GetXmlData();
+
+
+            //Debug.WriteLine(System.Text.Encoding.UTF8.GetString(data));
+            Console.WriteLine(System.Text.Encoding.UTF8.GetString(data));
+            //Assert
+            Assert.IsNotNull(data);
+
+
+        }
+
+
 
     }
 }

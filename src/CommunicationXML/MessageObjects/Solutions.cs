@@ -73,6 +73,7 @@ namespace CommunicationXML
             id = _id;
             commonData = _commonData;
             solutions = new List<Solution>(_solutions);
+            solutions.Add(Solution.GetEmptySolution());
         }
 
         /// <summary>

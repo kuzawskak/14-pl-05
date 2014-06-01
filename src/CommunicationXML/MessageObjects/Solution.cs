@@ -133,6 +133,18 @@ namespace CommunicationXML
             computationsTime = 0;
             data = new byte[0];
         }
+
+        /// <summary>
+        /// Metoda zwraca pusty obiekt Solution
+        /// </summary>
+        /// <returns>Obiekt solution</returns>
+        public static Solution GetEmptySolution()
+        {
+            Solution s = new Solution();
+            s.ComputationsTime = ulong.MaxValue;
+
+            return s;
+        }
     }
 
     /// <summary>
