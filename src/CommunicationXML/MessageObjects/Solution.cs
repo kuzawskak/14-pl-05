@@ -129,7 +129,7 @@ namespace CommunicationXML
         {
             id = null;
             timeoutOccured = false;
-            type = SolutionType.Final;
+            type = SolutionType.Ongoing;
             computationsTime = 0;
             data = new byte[0];
         }

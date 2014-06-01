@@ -160,6 +160,9 @@ namespace Components
                                     s.PartialProblemStatus == PartialProblemStatus.Solved ?
                                     SolutionType.Partial : SolutionType.Ongoing, s.ComputationsTime, s.Data));
                         }
+
+                        if (solutions.Count == 0)
+                            solutions.Add(Solution.GetEmptySolution());
                     }
 
                     response = new Solutions(p.ProblemType, p.Id, p.CommonData, solutions);
